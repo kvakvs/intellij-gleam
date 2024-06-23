@@ -7,17 +7,17 @@ plugins {
     // Java support
     id("java")
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "1.6.10"
+    id("org.jetbrains.kotlin.jvm") version "1.9.20"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij") version "1.4.0"
+    id("org.jetbrains.intellij") version "1.17.4"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "1.3.1"
     // Gradle Qodana Plugin
     id("org.jetbrains.qodana") version "0.1.13"
 //    // Gradle Grammar Kit Plugin
 //    id("org.jetbrains.grammarkit") version "2021.2.2"
-    // ANTLRv4 Grammar Plugin
-    id("antlr")
+
+    antlr // ANTLRv4 Grammar Plugin
 }
 
 group = properties("pluginGroup")
@@ -68,6 +68,17 @@ tasks {
         }
         withType<KotlinCompile> {
             kotlinOptions.jvmTarget = it
+        }
+    }
+
+    sourceSets {
+        main {
+//        java.srcDir("${project.buildDir}/generated-src/antlr")
+//        java.srcDir("src/main/gen")
+            java {
+                srcDir(generateGrammarSource)
+//            srcDir("src/main/java/generated-antlr")
+            }
         }
     }
 
@@ -122,6 +133,13 @@ tasks {
         // pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-        channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
+
+        //channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
+    }
+
+    generateGrammarSource {
+//        outputDirectory = file("${layout.buildDirectory}/generated-src/antlr")
+        outputDirectory = file("src/main/java/generated-antlr")
+//        arguments = listOf("-package", "run.gleam")
     }
 }
