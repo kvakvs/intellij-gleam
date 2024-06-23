@@ -7,7 +7,6 @@ import se.clau.gleam.GleamBundle
 import java.util.function.Supplier
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors as Default
 
-@Suppress("UnstableApiUsage")
 enum class GleamColor(humanName: Supplier<@AttributeDescriptor String>, default: TextAttributesKey? = null) {
     COMMENT(GleamBundle.messagePointer("settings.gleam.color.comment.normal"), Default.LINE_COMMENT),
     DOC_COMMENT(GleamBundle.messagePointer("settings.gleam.color.comment.doc"), Default.DOC_COMMENT),

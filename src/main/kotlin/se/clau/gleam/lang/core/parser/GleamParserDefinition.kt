@@ -1,7 +1,7 @@
 package se.clau.gleam.lang.core.parser
 
-import se.clau.gleam.GleamLexer
-import se.clau.gleam.GleamParser
+import GleamLexer
+import GleamParser
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
 import com.intellij.lang.PsiParser
@@ -60,13 +60,13 @@ class GleamParserDefinition : ParserDefinition {
     override fun getStringLiteralElements(): TokenSet = PSIElementTypeFactory.createTokenSet(GleamLanguage, GleamLexer.STRING)
 
     companion object {
-        var ID: TokenIElementType;
+        var ID: TokenIElementType
         init {
             PSIElementTypeFactory.defineLanguageIElementTypes(
                 GleamLanguage,
                 GleamParser.tokenNames,
-                GleamParser.ruleNames);
-            val tokenIElementTypes: List<TokenIElementType> = PSIElementTypeFactory.getTokenIElementTypes(GleamLanguage);
+                GleamParser.ruleNames)
+            val tokenIElementTypes: List<TokenIElementType> = PSIElementTypeFactory.getTokenIElementTypes(GleamLanguage)
             ID = tokenIElementTypes[GleamLexer.ID]
         }
     }

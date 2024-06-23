@@ -6,7 +6,7 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor
 import org.antlr.intellij.adaptor.lexer.TokenIElementType
-import se.clau.gleam.GleamLexer
+import GleamLexer
 import se.clau.gleam.ide.colors.GleamColor
 import se.clau.gleam.lang.GleamLanguage
 

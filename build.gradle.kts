@@ -4,20 +4,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
-    // Java support
-    id("java")
-    // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "1.9.20"
-    // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij") version "1.17.4"
-    // Gradle Changelog Plugin
-    id("org.jetbrains.changelog") version "1.3.1"
-    // Gradle Qodana Plugin
-    id("org.jetbrains.qodana") version "0.1.13"
-//    // Gradle Grammar Kit Plugin
-//    id("org.jetbrains.grammarkit") version "2021.2.2"
-
+    id("java") // Java support
+    id("org.jetbrains.kotlin.jvm") version "1.9.20" // Kotlin support
+    id("org.jetbrains.intellij") version "1.17.4" // Gradle IntelliJ Plugin
+    id("org.jetbrains.changelog") version "1.3.1" // Gradle Changelog Plugin
+    id("org.jetbrains.qodana") version "0.1.13" // Gradle Qodana Plugin
     antlr // ANTLRv4 Grammar Plugin
+    //id("org.jetbrains.grammarkit") version "2021.2.2" // Gradle Grammar Kit Plugin
 }
 
 group = properties("pluginGroup")
@@ -30,7 +23,7 @@ repositories {
 
 dependencies {
     implementation("org.antlr:antlr4-intellij-adaptor:0.1")
-    antlr("org.antlr:antlr4:4.11.1") { // use ANTLR version 4
+    antlr("org.antlr:antlr4:4.13.1") { // use ANTLR version 4
         exclude("group:'com.ibm.icu', module:'icu4j'")
     }
 }
@@ -135,8 +128,8 @@ tasks {
     }
 
     generateGrammarSource {
-//        outputDirectory = file("${layout.buildDirectory}/generated-src/antlr")
+        // outputDirectory = file("${layout.buildDirectory}/generated-src/antlr")
         outputDirectory = file("src/main/java/generated-antlr")
-        arguments = listOf("-package", "se.clau.gleam")
+        // arguments = listOf("-package", "se.clau.gleam")
     }
 }

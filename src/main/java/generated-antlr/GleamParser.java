@@ -1,5 +1,4 @@
-// Generated from java-escape by ANTLR 4.11.1
-package se.clau.gleam;
+// Generated from Gleam.g4 by ANTLR 4.13.1
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -11,7 +10,7 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class GleamParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.11.1", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.13.1", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -171,7 +170,7 @@ public class GleamParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "java-escape"; }
+	public String getGrammarFileName() { return "Gleam.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -232,7 +231,7 @@ public class GleamParser extends Parser {
 			setState(249);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663767044L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663767044L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0)) {
 				{
 				setState(247);
 				_errHandler.sync(this);
@@ -322,7 +321,7 @@ public class GleamParser extends Parser {
 			setState(260);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & 19824L) != 0) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 19824L) != 0)) {
 				{
 				{
 				setState(257);
@@ -702,7 +701,7 @@ public class GleamParser extends Parser {
 			setState(323);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0) {
+			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0)) {
 				{
 				setState(312);
 				constant_type_special();
@@ -856,7 +855,7 @@ public class GleamParser extends Parser {
 			setState(347);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0) {
+			if (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0)) {
 				{
 				setState(336);
 				constant_value();
@@ -950,7 +949,7 @@ public class GleamParser extends Parser {
 			setState(364);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0) {
+			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0)) {
 				{
 				setState(353);
 				constant_type_special();
@@ -1081,7 +1080,7 @@ public class GleamParser extends Parser {
 			setState(382);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0) {
+			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0)) {
 				{
 				setState(371);
 				constant_type_arguement();
@@ -1172,7 +1171,7 @@ public class GleamParser extends Parser {
 			setState(398);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0) {
+			if (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0)) {
 				{
 				setState(387);
 				constant_value();
@@ -1318,7 +1317,7 @@ public class GleamParser extends Parser {
 			setState(421);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0) {
+			if (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0)) {
 				{
 				setState(410);
 				constant_record_argument();
@@ -1328,7 +1327,7 @@ public class GleamParser extends Parser {
 				setState(415);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0) {
+				while (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0)) {
 					{
 					{
 					setState(412);
@@ -1776,7 +1775,7 @@ public class GleamParser extends Parser {
 			setState(473);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0) {
+			if (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218846863380447251L) != 0)) {
 				{
 				setState(462);
 				constant_bit_string_segment();
@@ -2513,7 +2512,7 @@ public class GleamParser extends Parser {
 			setState(559);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0) {
+			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0)) {
 				{
 				setState(548);
 				type_base();
@@ -2607,7 +2606,7 @@ public class GleamParser extends Parser {
 			setState(576);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0) {
+			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0)) {
 				{
 				setState(565);
 				type_base();
@@ -2927,7 +2926,7 @@ public class GleamParser extends Parser {
 			setState(611);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0) {
+			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0)) {
 				{
 				setState(600);
 				type_argument();
@@ -3190,7 +3189,7 @@ public class GleamParser extends Parser {
 			setState(644);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0) {
+			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0)) {
 				{
 				setState(633);
 				external_function_parameter();
@@ -3575,7 +3574,7 @@ public class GleamParser extends Parser {
 			setState(688);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663786932L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663786932L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0)) {
 				{
 				setState(687);
 				expression_seq();
@@ -3788,7 +3787,7 @@ public class GleamParser extends Parser {
 			setState(721);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0) {
+			if (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0)) {
 				{
 				setState(710);
 				pattern();
@@ -3946,7 +3945,7 @@ public class GleamParser extends Parser {
 			setState(745);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0) {
+			if (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0)) {
 				{
 				setState(734);
 				pattern_bit_string_segment();
@@ -4040,7 +4039,7 @@ public class GleamParser extends Parser {
 			setState(762);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0) {
+			if (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0)) {
 				{
 				setState(751);
 				pattern();
@@ -4242,7 +4241,7 @@ public class GleamParser extends Parser {
 			setState(789);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0) {
+			if (((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0)) {
 				{
 				setState(778);
 				record_pattern_argument();
@@ -4791,7 +4790,7 @@ public class GleamParser extends Parser {
 			setState(851);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663795124L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 779L) != 0) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663795124L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 779L) != 0)) {
 				{
 				setState(840);
 				argument();
@@ -5011,7 +5010,7 @@ public class GleamParser extends Parser {
 			setState(879);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663795124L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663795124L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0)) {
 				{
 				setState(868);
 				expression_bit_string_segment();
@@ -5160,7 +5159,7 @@ public class GleamParser extends Parser {
 			setState(902);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663795124L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663795124L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0)) {
 				{
 				setState(891);
 				expression(0);
@@ -5252,7 +5251,7 @@ public class GleamParser extends Parser {
 			setState(924);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663795124L) != 0 || (((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & -9218815660663795124L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 777L) != 0)) {
 				{
 				setState(907);
 				expression(0);
@@ -5801,7 +5800,7 @@ public class GleamParser extends Parser {
 			{
 			setState(977);
 			_la = _input.LA(1);
-			if ( !(((_la) & ~0x3f) == 0 && ((1L << _la) & 3801977796427776L) != 0) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 3801977796427776L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -6208,7 +6207,7 @@ public class GleamParser extends Parser {
 				setState(1026); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( (((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0 );
+			} while ( ((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 219409813333868563L) != 0) );
 			}
 		}
 		catch (RecognitionException re) {
@@ -7105,7 +7104,7 @@ public class GleamParser extends Parser {
 			{
 			setState(1133);
 			_la = _input.LA(1);
-			if ( !((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218424581927469059L) != 0) ) {
+			if ( !(((((_la - 16)) & ~0x3f) == 0 && ((1L << (_la - 16)) & 218424581927469059L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -8284,7 +8283,7 @@ public class GleamParser extends Parser {
 			setState(1249);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0) {
+			if (((((_la - 6)) & ~0x3f) == 0 && ((1L << (_la - 6)) & 432345839105474561L) != 0)) {
 				{
 				setState(1238);
 				data_constructor_argument();
