@@ -13,19 +13,7 @@ import se.clau.gleam.lang.GleamLanguage
 
 class GleamAnnotator : ExternalAnnotator<PsiFile, List<GleamAnnotator.IAnnotation>>() {
     interface IAnnotation {
-        fun annotate(holder: AnnotationHolder): Unit;
-    }
-
-    companion object {
-        class ColorAnnotation(private val range: TextRange, private val color: GleamColor) : IAnnotation {
-            override fun annotate(holder: AnnotationHolder) {
-                holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
-                    .range(range)
-                    .textAttributes(color.textAttributesKey)
-                    .create();
-            }
-
-        }
+        fun annotate(holder: AnnotationHolder)
     }
 
 
@@ -45,7 +33,13 @@ class GleamAnnotator : ExternalAnnotator<PsiFile, List<GleamAnnotator.IAnnotatio
             .forEach { annotations.add(ColorAnnotation(it.textRange, GleamColor.LOCAL_VARIABLE)) }
 
         // Functions
-        val funcNodes = (XPath.findAll(GleamLanguage, file, "//function") + XPath.findAll(GleamLanguage, file, "//external_function")).forEach { func ->
+        val funcNodes = (XPath.findAll(GleamLanguage, file, "//function") + XPath.findAll(
+            GleamLanguage,
+            file,
+            "//external_function"
+        ))
+
+        funcNodes.forEach { func ->
             XPath.findAll(GleamLanguage, func, "/function/identifier").forEach {
                 annotations.add(
                     ColorAnnotation(
@@ -106,4 +100,14 @@ class GleamAnnotator : ExternalAnnotator<PsiFile, List<GleamAnnotator.IAnnotatio
             annotation.annotate(holder)
         }
     }
+}
+
+class ColorAnnotation(private val range: TextRange, private val color: GleamColor) : GleamAnnotator.IAnnotation {
+    override fun annotate(holder: AnnotationHolder) {
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+            .range(range)
+            .textAttributes(color.textAttributesKey)
+            .create()
+    }
+
 }

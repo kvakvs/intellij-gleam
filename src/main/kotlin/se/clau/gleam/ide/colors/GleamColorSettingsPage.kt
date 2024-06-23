@@ -12,22 +12,22 @@ import se.clau.gleam.ide.icons.GleamIcons
 
 class GleamColorSettingsPage : ColorSettingsPage {
     override fun getDisplayName() = GleamBundle.message("settings.gleam.color.scheme.title")
-    override fun getIcon() = GleamIcons.GLEAM
+    override fun getIcon() = GleamIcons.GLEAM_16x16
     override fun getAttributeDescriptors() = ATTRS
     override fun getColorDescriptors(): Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY
     override fun getHighlighter() = GleamHighlighter()
     override fun getAdditionalHighlightingTagToDescriptorMap() = ANNOTATOR_TAGS
     override fun getDemoText() = DEMO_TEXT
 
-    companion object {
-        private val ATTRS: Array<AttributesDescriptor> = GleamColor.entries.map { it.attributesDescriptor }.toTypedArray()
+}
 
-        private val ANNOTATOR_TAGS: Map<String, TextAttributesKey> = GleamColor.entries.associateBy({ it.name }, { it.textAttributesKey })
-
-        private val DEMO_TEXT: String by lazy {
-            val stream = GleamColorSettingsPage::class.java.classLoader
-                .getResourceAsStream("run/gleam/ide/colors/highlighterDemoText.gleam")
-            StreamUtil.convertSeparators(StreamUtil.readText(stream, "UTF-8"))
-        }
-    }
+private val ATTRS: Array<AttributesDescriptor> = GleamColor.entries.map { it.attributesDescriptor }.toTypedArray()
+private val ANNOTATOR_TAGS: Map<String, TextAttributesKey> =
+    GleamColor.entries.associateBy({ it.name }, { it.textAttributesKey })
+private val DEMO_TEXT: String by lazy {
+    val stream = GleamColorSettingsPage::class.java.classLoader
+        .getResourceAsStream("run/gleam/ide/colors/highlighterDemoText.gleam")
+    val reader = stream?.bufferedReader()
+    val text = reader?.readText() ?: ""
+    StreamUtil.convertSeparators(text)
 }

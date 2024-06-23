@@ -11,5 +11,5 @@ object GleamFileType : LanguageFileType(GleamLanguage) {
 
     override fun getDefaultExtension(): String = "gleam"
 
-    override fun getIcon(): Icon = GleamIcons.GLEAM
+    override fun getIcon(): Icon = GleamIcons.GLEAM_16x16
 }
