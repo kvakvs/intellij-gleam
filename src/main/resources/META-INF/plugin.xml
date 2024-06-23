@@ -1,7 +1,7 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin url="https://github.com/HarryET/gleam-intellij">
-    <id>run.gleam</id>
-    <name>Gleam Language</name>
+    <id>se.clau.gleam</id>
+    <name>Gleam Language (Fork)</name>
 
     <vendor
             url="https://harryet.xyz"
@@ -13,24 +13,24 @@
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="Gleam"
                   language="Gleam"
-                  implementationClass="run.gleam.lang.GleamFileType"
+                  implementationClass="se.clau.gleam.lang.GleamFileType"
                   extensions="gleam"
                   fieldName="INSTANCE"/>
 
-        <lang.parserDefinition language="Gleam" implementationClass="run.gleam.lang.core.parser.GleamParserDefinition"/>
+        <lang.parserDefinition language="Gleam" implementationClass="se.clau.gleam.lang.core.parser.GleamParserDefinition"/>
 
         <lang.syntaxHighlighter language="Gleam"
-                                implementationClass="run.gleam.ide.highlight.GleamHighlighter"/>
+                                implementationClass="se.clau.gleam.ide.highlight.GleamHighlighter"/>
 
         <lang.foldingBuilder language="Gleam"
-                             implementationClass="run.gleam.ide.GleamFoldingBuilder" />
+                             implementationClass="se.clau.gleam.ide.GleamFoldingBuilder" />
 
         <lang.commenter language="Gleam"
-                        implementationClass="run.gleam.ide.commenter.GleamCommenter"/>
+                        implementationClass="se.clau.gleam.ide.commenter.GleamCommenter"/>
 
         <externalAnnotator language="Gleam"
-                   implementationClass="run.gleam.ide.highlight.GleamAnnotator" />
+                   implementationClass="se.clau.gleam.ide.highlight.GleamAnnotator" />
 
-        <colorSettingsPage implementation="run.gleam.ide.colors.GleamColorSettingsPage"/>
+        <colorSettingsPage implementation="se.clau.gleam.ide.colors.GleamColorSettingsPage"/>
     </extensions>
 </idea-plugin>

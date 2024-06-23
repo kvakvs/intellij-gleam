@@ -1,4 +1,4 @@
-package run.gleam
+package se.clau.gleam
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.NonNls

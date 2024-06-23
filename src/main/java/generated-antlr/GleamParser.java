@@ -1,4 +1,5 @@
 // Generated from java-escape by ANTLR 4.11.1
+package se.clau.gleam;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;

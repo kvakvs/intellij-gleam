@@ -1,4 +1,4 @@
-package run.gleam.ide
+package se.clau.gleam.ide
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
@@ -6,7 +6,7 @@ import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiElement
 import org.antlr.intellij.adaptor.xpath.XPath
-import run.gleam.lang.GleamLanguage
+import se.clau.gleam.lang.GleamLanguage
 
 class GleamFoldingBuilder : FoldingBuilderEx() {
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {

@@ -73,11 +73,8 @@ tasks {
 
     sourceSets {
         main {
-//        java.srcDir("${project.buildDir}/generated-src/antlr")
-//        java.srcDir("src/main/gen")
             java {
                 srcDir(generateGrammarSource)
-//            srcDir("src/main/java/generated-antlr")
             }
         }
     }
@@ -140,6 +137,6 @@ tasks {
     generateGrammarSource {
 //        outputDirectory = file("${layout.buildDirectory}/generated-src/antlr")
         outputDirectory = file("src/main/java/generated-antlr")
-//        arguments = listOf("-package", "run.gleam")
+        arguments = listOf("-package", "se.clau.gleam")
     }
 }

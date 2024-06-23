@@ -1,4 +1,4 @@
-package run.gleam.ide.highlight
+package se.clau.gleam.ide.highlight
 
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
@@ -7,8 +7,8 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
 import org.antlr.intellij.adaptor.xpath.XPath
-import run.gleam.ide.colors.GleamColor
-import run.gleam.lang.GleamLanguage
+import se.clau.gleam.ide.colors.GleamColor
+import se.clau.gleam.lang.GleamLanguage
 
 
 class GleamAnnotator : ExternalAnnotator<PsiFile, List<GleamAnnotator.IAnnotation>>() {

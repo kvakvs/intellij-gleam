@@ -5,13 +5,15 @@
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/19030-gleam-language.svg)](https://plugins.jetbrains.com/plugin/19030-gleam-language)
 
 <!-- Plugin description -->
-[Gleam](https://gleam.run) language support
+This is a fork of project by Harry Bairstow https://plugins.jetbrains.com/plugin/19030-gleam-language ([Github](https://github.com/HarryET/gleam-intellij))
+and adds [Gleam](https://gleam.run) language support to IntelliJ-based IDEs.
 
-This plugin will use the Gleam LSP too power features such as:
-- [ ] Hover Information
-- [ ] Definition Information
-- [ ] Document Formatting
-</br>And more to come ...
+TODO: 
+- [ ] Use the Gleam LSP too power features (LSP client library or impl)
+  - [ ] Hover Information
+  - [ ] Definition Information
+  - [ ] Document Formatting
+
 <!-- Plugin description end -->
 
 ## Installation

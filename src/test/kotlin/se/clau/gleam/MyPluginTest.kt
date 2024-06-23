@@ -1,4 +1,4 @@
-package run.gleam
+package se.clau.gleam
 
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.psi.xml.XmlFile

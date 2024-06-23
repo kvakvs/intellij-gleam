@@ -1,4 +1,4 @@
-package run.gleam.ide.commenter
+package se.clau.gleam.ide.commenter
 
 import com.intellij.lang.Commenter
 
