@@ -1,6 +1,9 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 # Gleam Language Changelog
 
+## [2024.6.1]
+- Parser and coloring improvements
+
 ## [2024.6.0]
 - Bumped Intellij supported version to 2024.1
 - Bumped Java, Gradle, Kotlin version
