@@ -8,7 +8,7 @@ target_group: IF (identifier) LEFT_BRACE (statement)* RIGHT_BRACE;
 module : LOWERCASE_IDENT (SLASH LOWERCASE_IDENT)*;
 unqualified_import
     : LOWERCASE_IDENT (AS LOWERCASE_IDENT)?
-    | UPPERCASE_IDENT (AS UPPERCASE_IDENT)?
+    | TYPE? UPPERCASE_IDENT (AS UPPERCASE_IDENT)?
     ;
 unqualified_imports
     : LEFT_BRACE (unqualified_import (COMMA unqualified_import)* (COMMA)?)? RIGHT_BRACE
@@ -36,7 +36,7 @@ constant_record_argument: (label COLON)? constant_value;
 constant_record_arguments: LEFT_PAREN (constant_record_argument (COMMA (constant_record_argument)* (COMMA)?))? RIGHT_PAREN;
 constant_record : (constructor_name | remote_constructor_name) (constant_record_arguments)?;
 
-integer: BIN_INT | OCT_INT | DEC_INT | HEX_INT;
+integer: INT;
 bit_string_segment_option_size : identifier LEFT_PAREN integer RIGHT_PAREN;
 // 'binary' | 'bytes' | 'int' | 'float' | 'bit_string' | 'bits' | 'utf8' | 'utf16' | 'utf32' | 'utf8_codepoint' | 'utf16_codepoint' | 'utf32_codepoint' | 'signed' | 'unsigned' | 'big' | 'little' | 'native' | 'unit' '(' INTEGER ')';
 // enforce value for identifier for these surrounding 2 rules with an intelliJ annotator
@@ -44,7 +44,7 @@ bit_string_named_segment_option: identifier | bit_string_segment_option_size;
 bit_string_segment_option: bit_string_named_segment_option | integer;
 bit_string_segment_options: bit_string_segment_option (MINUS bit_string_segment_option)*  (MINUS)?;
 constant_bit_string_segment: constant_value (COLON bit_string_segment_options)?;
-constant_bit_string: LT_LT  (constant_bit_string_segment (COMMA constant_bit_string_segment)* (COMMA)?)? GT_GT;
+constant_bit_string: LTLT  (constant_bit_string_segment (COMMA constant_bit_string_segment)* (COMMA)?)? GTGT;
 
 constant_type: (type_identifier | remote_type_identifier) (constant_type_arguements)?;
 constant_type_special
@@ -57,7 +57,7 @@ constant_type_annotation: COLON constant_type;
 constant_field_access: identifier DOT label;
 constant_value: constant_tuple | constant_list | constant_bit_string | constant_record | identifier | constant_field_access | expression_literal;
 constant
-    : (visibility_modifier)? CONST LOWERCASE_IDENT (constant_type_annotation)? EQUAL constant_value
+    : (visibility_modifier)? CONST LOWERCASE_IDENT (constant_type_annotation)? EQ constant_value
     ;
 
 type_parameters: LEFT_PAREN (type_parameter (COMMA type_parameter)* (COMMA)?)? RIGHT_PAREN;
@@ -77,7 +77,7 @@ type: (type_identifier | remote_type_identifier) (type_arguments)?;
 external_function_body: STRING STRING;
 external_function_parameter: (identifier COLON)? type_base;
 external_function_parameters: LEFT_PAREN (external_function_parameter (COMMA external_function_parameter)* (COMMA)?)? RIGHT_PAREN;
-external_function: (visibility_modifier)? EXTERNAL FN identifier external_function_parameters R_ARROW type_base EQUAL external_function_body;
+external_function: (visibility_modifier)? EXTERNAL FN identifier external_function_parameters R_ARROW type_base EQ external_function_body;
 
 function_parameter_args: labeled_discard_param | discard_param | labeled_name_param | name_param;
 function_parameter: function_parameter_args (type_annotation)?;
@@ -90,7 +90,7 @@ list_pattern_tail: DOT_DOT (identifier | discard)?;
 list_pattern: LEFT_SQUARE (pattern (COMMA pattern)* (COMMA)?)? (list_pattern_tail)? RIGHT_SQUARE;
 
 pattern_bit_string_segment: pattern (COLON bit_string_segment_options)?;
-pattern_bit_string: LT_LT (pattern_bit_string_segment (COMMA pattern_bit_string_segment)* (COMMA)?)? GT_GT;
+pattern_bit_string: LTLT (pattern_bit_string_segment (COMMA pattern_bit_string_segment)* (COMMA)?)? GTGT;
 
 tuple_pattern: HASH LEFT_PAREN (pattern (COMMA pattern)* (COMMA)?)? RIGHT_PAREN;
 pattern_spread: (DOT_DOT (COMMA)?);
@@ -99,7 +99,7 @@ record_pattern_arguments: LEFT_PAREN (record_pattern_argument (COMMA record_patt
 record_pattern: (constructor_name | remote_constructor_name) (record_pattern_arguments)?;
 pattern: (identifier | discard | record_pattern | expression_literal | tuple_pattern | pattern_bit_string | list_pattern) (AS identifier)?;
 
-try: TRY pattern (type_annotation)? EQUAL expression;
+try: TRY pattern (type_annotation)? EQ expression;
 expression_try_list1: (expression | try)+;
 expression_try_list0: (expression | try)*;
 
@@ -108,7 +108,7 @@ argument_list: LEFT_PAREN (argument (COMMA argument)* (COMMA)?)? RIGHT_PAREN;
 record: (constructor_name | remote_constructor_name) (argument_list)?;
 
 expression_bit_string_segment: expression_unit (COLON bit_string_segment_options)?;
-expression_bit_string: LT_LT (expression_bit_string_segment (COMMA expression_bit_string_segment)* (COMMA)?)? GT_GT;
+expression_bit_string: LTLT (expression_bit_string_segment (COMMA expression_bit_string_segment)* (COMMA)?)? GTGT;
 
 todo: TODO (LEFT_PAREN STRING RIGHT_PAREN)?;
 tuple: HASH LEFT_PAREN (expression (COMMA expression)* (COMMA)?)? RIGHT_PAREN;
@@ -126,14 +126,14 @@ expression_group: LEFT_BRACE expression_try_list1 RIGHT_BRACE;
 
 case_clause_tuple_access: identifier DOT integer;
 case_clause_guard_unit: identifier | case_clause_tuple_access | LEFT_BRACE case_clause_guard_expression RIGHT_BRACE | constant_value;
-case_clause_guard_binary_operator: VBAR_VBAR | AMPER_AMPER | EQUAL_EQUAL | NOT_EQUAL | LESS | LESS_EQUAL | LESS_DOT
+case_clause_guard_binary_operator: BARBAR | ANDAND | EQEQ | NEQ | LESS | LESS_EQUAL | LESS_DOT
     | LESS_EQUAL_DOT | GREATER | GREATER_EQUAL | GREATER_DOT | GREATER_EQUAL_DOT;
 case_clause_guard_expression
     : case_clause_guard_expression case_clause_guard_binary_operator case_clause_guard_expression
     | case_clause_guard_unit;
 case_clause_guard: IF case_clause_guard_expression;
 case_clause_pattern: pattern (COMMA pattern)*  (COMMA)?;
-case_clause_patterns: case_clause_pattern (VBAR case_clause_pattern)* (VBAR)?;
+case_clause_patterns: case_clause_pattern (BAR case_clause_pattern)* (BAR)?;
 case_clause: case_clause_patterns (case_clause_guard)? R_ARROW expression;
 case_clauses: (case_clause)+;
 case_subjects: expression_try_list1;
@@ -142,7 +142,7 @@ case: CASE case_subjects LEFT_BRACE case_clauses RIGHT_BRACE;
 use_args: identifier | identifier COMMA use_args;
 use: USE (use_args)? L_ARROW expression;
 
-assignment: pattern (type_annotation)? EQUAL expression;
+assignment: pattern (type_annotation)? EQ expression;
 let: LET assignment;
 assert: ASSERT assignment;
 negation: BANG expression_unit;
@@ -186,8 +186,8 @@ expression_unit
 
 expression
     : expression_unit #unit
-    | left=expression EQUAL_EQUAL right=expression #eq
-    | left=expression NOT_EQUAL right=expression #neq
+    | left=expression EQEQ right=expression #eq
+    | left=expression NEQ right=expression #neq
     | left=expression LESS right=expression #lt
     | left=expression LESS_EQUAL right=expression #lte
     | left=expression LESS_DOT right=expression #ltf
@@ -207,8 +207,8 @@ expression
     | left=expression SLASH right=expression #slash
     | left=expression SLASH_DOT right=expression #slashf
     | left=expression PERCENT right=expression #percent
-    | left=expression AMPER_AMPER right=expression #and
-    | left=expression VBAR_VBAR right=expression #or
+    | left=expression ANDAND right=expression #and
+    | left=expression BARBAR right=expression #or
     ;
 
 data_constructor_argument: (label COLON)? type_base;
@@ -217,7 +217,7 @@ data_constructor: constructor_name (data_constructor_arguments)?;
 data_constructors: (data_constructor)+;
 
 type_definition: (visibility_modifier)? (opacity_modifier)? TYPE type_name LEFT_BRACE data_constructors RIGHT_BRACE;
-type_alias: (visibility_modifier)? (opacity_modifier)? TYPE type_name EQUAL type;
+type_alias: (visibility_modifier)? (opacity_modifier)? TYPE type_name EQ type;
 
 // FIXME: review name, is this really a statement or more like a module level definition
 statement
@@ -308,14 +308,14 @@ COLON: ':';
 COMMA: ',';
 HASH: '#';
 BANG: '!';
-EQUAL: '=';
-EQUAL_EQUAL: '==';
-NOT_EQUAL: '!=';
-VBAR: '|';
-VBAR_VBAR: '||';
-AMPER_AMPER: '&&';
-LT_LT: '<<';
-GT_GT: '>>';
+EQ: '=';
+EQEQ: '==';
+NEQ: '!=';
+BAR: '|';
+BARBAR: '||';
+ANDAND: '&&';
+LTLT: '<<';
+GTGT: '>>';
 PIPE: '|>';
 DOT: '.';
 R_ARROW: '->';
@@ -336,28 +336,30 @@ IDENT:              LOWERCASE_IDENT | UPPERCASE_IDENT | IGNORED_IDENT;
 
 // Lexer: Numbers (integers)
 fragment SIGN: [+-];
+fragment BIN_DIGIT: [01];
+fragment OCT_DIGIT: [0-7];
+fragment DEC_DIGIT: [0-9];
+fragment HEX_DIGIT: [0-9a-fA-F];
 
 // Lexer: Literals
-DEC_INT:    SIGN? [0-9] ('_'? [0-9]+) *;
-BIN_INT:    SIGN? ('0b' | '0B') [0-1] ('_'? [0-1]+) *;
-HEX_INT:    SIGN? ('0x' | '0X') [0-9a-fA-F] ('_'? [0-9a-fA-F]+) *;
-OCT_INT:    SIGN? ('0o' | '0O') [0-7] ('_'? [0-7]+) *;
-//INT:        SIGN? (BIN_INT | OCT_INT | DEC_INT | HEX_INT); // order of ascending base 2, 8, 10, 16
+fragment DEC_INT:   DEC_DIGIT ('_'? DEC_DIGIT+) *;
+fragment BIN_INT:   ('0b' | '0B') BIN_DIGIT ('_'? BIN_DIGIT+) *;
+fragment HEX_INT:   ('0x' | '0X') HEX_DIGIT ('_'? HEX_DIGIT+) *;
+fragment OCT_INT:   ('0o' | '0O') [0-7] ('_'? [0-7]+) *;
+INT:        SIGN? (BIN_INT | OCT_INT | DEC_INT | HEX_INT); // order of ascending base 2, 8, 10, 16
 
 // Lexer: Float
 fragment E: [Ee];
-FLOAT: SIGN?
-    (
-        (DEC_INT '.' DEC_INT?)      // 1.35, 1.35E-9, 0.3, -4.5, +1. 10_000.0
-        | ('.' DEC_INT)             // .3, -.4, .0_000_000_1
-    )
-    (E SIGN? DEC_INT)?
-    ;
+fragment FLOAT1: DEC_INT '.' DEC_INT?;      // 1.35, 1.35E-9, 0.3, -4.5, +1. 10_000.0
+fragment FLOAT2: ('.' DEC_INT);             // .3, -.4, .0_000_000_1
+fragment FLOAT_EXPONENT: E SIGN? DEC_INT;
+FLOAT: SIGN? (FLOAT1 | FLOAT2) FLOAT_EXPONENT? ;
 
 // Lexer: String
-fragment BACKSLASH:  '\\';
-fragment ESC_CHAR:  BACKSLASH ["\bfnrt] ;
-STRING:             '"' (ESC_CHAR | ~["\\])* '"' ;
+fragment BACKSLASH:     '\\';
+fragment ESC_CHAR:      BACKSLASH ["\bfnrt] ;
+fragment ESC_CODEPOINT: BACKSLASH 'u{' HEX_DIGIT+ '}' ;
+STRING:             '"' (ESC_CHAR | ESC_CODEPOINT | ~["\\])* '"' ;
 
 WHITESPACE: [ \t\n\r]+ -> channel(HIDDEN) ;
 //CRLF: [\r?\n]+ -> channel(HIDDEN) ;

@@ -9,3 +9,5 @@ pub fn main() {
   // Example comment
   io.println("Hello World!")
 }
+
+pub fn label_parameters(label param: Int) {}

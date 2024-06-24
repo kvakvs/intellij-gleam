@@ -27,6 +27,7 @@ enum class GleamColor(humanName: Supplier<@AttributeDescriptor String>, default:
 
     FUNCTION_DECLARATION(GleamBundle.messagePointer("settings.gleam.color.function"), Default.FUNCTION_DECLARATION),
     FUNCTION_PARAM(GleamBundle.messagePointer("settings.gleam.color.function.param"), Default.PARAMETER),
+    FUNCTION_PARAM_LABEL(GleamBundle.messagePointer("settings.gleam.color.function.param.label"), Default.DOC_COMMENT),
 
     TYPE_IDENTIFIER(GleamBundle.messagePointer("settings.gleam.color.type_identifier"), Default.CLASS_REFERENCE),
 
