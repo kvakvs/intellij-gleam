@@ -27,7 +27,7 @@ fun map(tokenType: IElementType?): GleamColor? {
         GleamLexer.MODULE_COMMENT -> GleamColor.MODULE_COMMENT
 
         GleamLexer.AS, GleamLexer.ASSERT, GleamLexer.CASE, GleamLexer.CONST,
-        GleamLexer.EXTERNAL, GleamLexer.FN, GleamLexer.IF, GleamLexer.IMPORT,
+        GleamLexer.FN, GleamLexer.IF, GleamLexer.IMPORT,
         GleamLexer.LET, GleamLexer.OPAQUE, GleamLexer.PUB, GleamLexer.TODO,
         GleamLexer.TRY, GleamLexer.TYPE, GleamLexer.USE -> GleamColor.KEYWORD
 
@@ -39,9 +39,9 @@ fun map(tokenType: IElementType?): GleamColor? {
 
         GleamLexer.TRUE, GleamLexer.FALSE -> GleamColor.BOOLEAN
 
-        GleamLexer.LEFT_BRACE, GleamLexer.RIGHT_BRACE -> GleamColor.BRACES
+        GleamLexer.CURLY_OPEN, GleamLexer.CURLY_CLOSE -> GleamColor.BRACES
 
-        GleamLexer.LEFT_PAREN, GleamLexer.RIGHT_PAREN -> GleamColor.PARENTHESES
+        GleamLexer.PAR_OPEN, GleamLexer.PAR_CLOSE -> GleamColor.PARENTHESES
 
         GleamLexer.EQ, GleamLexer.EQEQ, GleamLexer.NEQ,
         GleamLexer.GREATER, GleamLexer.GREATER_EQUAL, GleamLexer.GREATER_EQUAL_DOT,

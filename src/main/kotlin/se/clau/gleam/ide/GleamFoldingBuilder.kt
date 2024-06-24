@@ -10,9 +10,10 @@ import se.clau.gleam.lang.GleamLanguage
 
 class GleamFoldingBuilder : FoldingBuilderEx() {
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
-        val functions =
-            XPath.findAll(GleamLanguage, root, "//function//function_body").map { FoldingDescriptor(it, it.textRange) }
-        return (functions).toTypedArray()
+//        val functions =
+//            XPath.findAll(GleamLanguage, root, "//function//function_body").map { FoldingDescriptor(it, it.textRange) }
+//        return (functions).toTypedArray()
+        return emptyArray()
     }
 
     override fun getPlaceholderText(node: ASTNode): String {

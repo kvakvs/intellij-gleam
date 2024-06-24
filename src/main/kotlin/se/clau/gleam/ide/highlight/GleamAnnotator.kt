@@ -38,10 +38,7 @@ class GleamAnnotator : ExternalAnnotator<PsiFile, List<GleamAnnotator.IAnnotatio
         findAndMark(file, "//function//assignment/pattern/identifier", annotations, GleamColor.LOCAL_VARIABLE)
 
         // Find all functions...
-        val funcs = XPath.findAll(GleamLanguage, file, "//function")
-        val extfuncs = XPath.findAll(GleamLanguage, file, "//external_function")
-
-        (funcs + extfuncs).forEach { func ->
+        XPath.findAll(GleamLanguage, file, "//function").forEach { func ->
             // Labeled function parameters
             findAndMark(
                 func,
@@ -55,8 +52,9 @@ class GleamAnnotator : ExternalAnnotator<PsiFile, List<GleamAnnotator.IAnnotatio
                 annotations,
                 GleamColor.FUNCTION_PARAM_LABEL
             )
-            findAndMark(func, "/function/identifier", annotations, GleamColor.FUNCTION_DECLARATION)
-            findAndMark(func, "/function/function_parameters//identifier", annotations, GleamColor.FUNCTION_PARAM)
+            findAndMark(func, "/identifier", annotations, GleamColor.FUNCTION_DECLARATION)
+            findAndMark(func, "//function_parameters//identifier", annotations, GleamColor.FUNCTION_PARAM)
+            findAndMark(func, "//function_body//identifier", annotations, GleamColor.LOCAL_VARIABLE) // too broad
         }
 
         // Type Identifiers

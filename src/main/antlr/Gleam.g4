@@ -1,9 +1,10 @@
 grammar Gleam;
 
+// Root
 source_file: (statement | expression_try_list1 | target_group)* EOF;
 
 // Enforce javascript | erlang with an intellij annotator
-target_group: IF (identifier) LEFT_BRACE (statement)* RIGHT_BRACE;
+target_group: IF (identifier) CURLY_OPEN (statement)* CURLY_CLOSE;
 
 module : LOWERCASE_IDENT (SLASH LOWERCASE_IDENT)*;
 unqualified_import
@@ -11,33 +12,33 @@ unqualified_import
     | TYPE? UPPERCASE_IDENT (AS UPPERCASE_IDENT)?
     ;
 unqualified_imports
-    : LEFT_BRACE (unqualified_import (COMMA unqualified_import)* (COMMA)?)? RIGHT_BRACE
+    : CURLY_OPEN (unqualified_import (COMMA unqualified_import)* (COMMA)?)? CURLY_CLOSE
     ;
 imports
     : IMPORT module (DOT unqualified_imports)? (AS LOWERCASE_IDENT)?
     ;
 
 constant_function_parameter_types
-    : LEFT_PAREN (constant_type_special (COMMA constant_type_special)* (COMMA)?)? RIGHT_PAREN;
+    : PAR_OPEN (constant_type_special (COMMA constant_type_special)* (COMMA)?)? PAR_CLOSE;
 constant_type_function
     : FN (constant_function_parameter_types)? R_ARROW constant_type_special
     ;
 
-constant_tuple: HASH LEFT_PAREN (constant_value (COMMA constant_value)* (COMMA)?)? RIGHT_PAREN;
+constant_tuple: HASH PAR_OPEN (constant_value (COMMA constant_value)* (COMMA)?)? PAR_CLOSE;
 constant_type_tuple
-    : HASH LEFT_PAREN (constant_type_special (COMMA constant_type_special)* (COMMA)?)? RIGHT_PAREN;
+    : HASH PAR_OPEN (constant_type_special (COMMA constant_type_special)* (COMMA)?)? PAR_CLOSE;
 
 constant_type_arguement: constant_type_special;
-constant_type_arguements: LEFT_PAREN (constant_type_arguement (COMMA constant_type_arguement)* (COMMA)?)? RIGHT_PAREN;
+constant_type_arguements: PAR_OPEN (constant_type_arguement (COMMA constant_type_arguement)* (COMMA)?)? PAR_CLOSE;
 
-constant_list: LEFT_SQUARE (constant_value (COMMA constant_value )* (COMMA)?)? RIGHT_SQUARE;
+constant_list: SQUARE_OPEN (constant_value (COMMA constant_value )* (COMMA)?)? SQUARE_CLOSE;
 
 constant_record_argument: (label COLON)? constant_value;
-constant_record_arguments: LEFT_PAREN (constant_record_argument (COMMA (constant_record_argument)* (COMMA)?))? RIGHT_PAREN;
+constant_record_arguments: PAR_OPEN (constant_record_argument (COMMA (constant_record_argument)* (COMMA)?))? PAR_CLOSE;
 constant_record : (constructor_name | remote_constructor_name) (constant_record_arguments)?;
 
 integer: INT;
-bit_string_segment_option_size : identifier LEFT_PAREN integer RIGHT_PAREN;
+bit_string_segment_option_size : identifier PAR_OPEN integer PAR_CLOSE;
 // 'binary' | 'bytes' | 'int' | 'float' | 'bit_string' | 'bits' | 'utf8' | 'utf16' | 'utf32' | 'utf8_codepoint' | 'utf16_codepoint' | 'utf32_codepoint' | 'signed' | 'unsigned' | 'big' | 'little' | 'native' | 'unit' '(' INTEGER ')';
 // enforce value for identifier for these surrounding 2 rules with an intelliJ annotator
 bit_string_named_segment_option: identifier | bit_string_segment_option_size;
@@ -60,42 +61,44 @@ constant
     : (visibility_modifier)? CONST LOWERCASE_IDENT (constant_type_annotation)? EQ constant_value
     ;
 
-type_parameters: LEFT_PAREN (type_parameter (COMMA type_parameter)* (COMMA)?)? RIGHT_PAREN;
-type_name: (type_identifier | remote_type_identifier) (type_parameters)?  ;
-external_type: (visibility_modifier)? EXTERNAL TYPE type_name;
+type_parameters: PAR_OPEN (type_parameter (COMMA type_parameter)* (COMMA)?)? PAR_CLOSE;
+type_name: (type_identifier | remote_type_identifier) (type_parameters)?;
+//external_type: (visibility_modifier)? EXTERNAL TYPE type_name;
+external_type: visibility_modifier TYPE type_name;
 
-function_parameter_types : LEFT_PAREN (type_base (COMMA type_base)* (COMMA)?)? RIGHT_PAREN;
-tuple_type: HASH LEFT_PAREN (type_base (COMMA type_base)* (COMMA)?)? RIGHT_PAREN;
+function_parameter_types : PAR_OPEN (type_base (COMMA type_base)* (COMMA)?)? PAR_CLOSE;
+tuple_type: HASH PAR_OPEN (type_base (COMMA type_base)* (COMMA)?)? PAR_CLOSE;
 function_type: FN (function_parameter_types)? R_ARROW type_base;
 
 type_base: type_hole | tuple_type | function_type | type | type_var;
 type_annotation: COLON type_base;
 type_argument: type_base;
-type_arguments: LEFT_PAREN (type_argument (COMMA type_argument)* (COMMA)?)? RIGHT_PAREN;
+type_arguments: PAR_OPEN (type_argument (COMMA type_argument)* (COMMA)?)? PAR_CLOSE;
 type: (type_identifier | remote_type_identifier) (type_arguments)?;
 
-external_function_body: STRING STRING;
-external_function_parameter: (identifier COLON)? type_base;
-external_function_parameters: LEFT_PAREN (external_function_parameter (COMMA external_function_parameter)* (COMMA)?)? RIGHT_PAREN;
-external_function: (visibility_modifier)? EXTERNAL FN identifier external_function_parameters R_ARROW type_base EQ external_function_body;
+// FIX ME: Deprecated syntax? use @external(lang, mod, fn)? https://exercism.org/tracks/gleam/concepts/external-functions
+//external_function_body: STRING STRING;
+//external_function_parameter: (identifier COLON)? type_base;
+//external_function_parameters: LEFT_PAREN (external_function_parameter (COMMA external_function_parameter)* (COMMA)?)? RIGHT_PAREN;
+//external_function: (visibility_modifier)? EXTERNAL FN identifier external_function_parameters R_ARROW type_base EQ external_function_body;
 
 function_parameter_args: labeled_discard_param | discard_param | labeled_name_param | name_param;
 function_parameter: function_parameter_args (type_annotation)?;
-function_parameters: LEFT_PAREN (function_parameter (COMMA function_parameter)* (COMMA)?)? RIGHT_PAREN;
+function_parameters: PAR_OPEN (function_parameter (COMMA function_parameter)* (COMMA)?)? PAR_CLOSE;
 // Gleam: parse.rs/parse_function implementation - body can follow an OPTIONAL left brace, this is not allowed in anon functions
-function_body: LEFT_BRACE expression_try_list0 RIGHT_BRACE;
+function_body: CURLY_OPEN expression_try_list0 CURLY_CLOSE;
 function: (visibility_modifier)? FN identifier function_parameters (R_ARROW type_base)? function_body;
 
 list_pattern_tail: DOT_DOT (identifier | discard)?;
-list_pattern: LEFT_SQUARE (pattern (COMMA pattern)* (COMMA)?)? (list_pattern_tail)? RIGHT_SQUARE;
+list_pattern: SQUARE_OPEN (pattern (COMMA pattern)* (COMMA)?)? (list_pattern_tail)? SQUARE_CLOSE;
 
 pattern_bit_string_segment: pattern (COLON bit_string_segment_options)?;
 pattern_bit_string: LTLT (pattern_bit_string_segment (COMMA pattern_bit_string_segment)* (COMMA)?)? GTGT;
 
-tuple_pattern: HASH LEFT_PAREN (pattern (COMMA pattern)* (COMMA)?)? RIGHT_PAREN;
+tuple_pattern: HASH PAR_OPEN (pattern (COMMA pattern)* (COMMA)?)? PAR_CLOSE;
 pattern_spread: (DOT_DOT (COMMA)?);
 record_pattern_argument: (label COLON)? pattern;
-record_pattern_arguments: LEFT_PAREN (record_pattern_argument (COMMA record_pattern_argument)* (COMMA)?)? (pattern_spread)? RIGHT_PAREN;
+record_pattern_arguments: PAR_OPEN (record_pattern_argument (COMMA record_pattern_argument)* (COMMA)?)? (pattern_spread)? PAR_CLOSE;
 record_pattern: (constructor_name | remote_constructor_name) (record_pattern_arguments)?;
 pattern: (identifier | discard | record_pattern | expression_literal | tuple_pattern | pattern_bit_string | list_pattern) (AS identifier)?;
 
@@ -104,28 +107,28 @@ expression_try_list1: (expression | try)+;
 expression_try_list0: (expression | try)*;
 
 argument: (label ':')? (hole | expression);
-argument_list: LEFT_PAREN (argument (COMMA argument)* (COMMA)?)? RIGHT_PAREN;
+argument_list: PAR_OPEN (argument (COMMA argument)* (COMMA)?)? PAR_CLOSE;
 record: (constructor_name | remote_constructor_name) (argument_list)?;
 
 expression_bit_string_segment: expression_unit (COLON bit_string_segment_options)?;
 expression_bit_string: LTLT (expression_bit_string_segment (COMMA expression_bit_string_segment)* (COMMA)?)? GTGT;
 
-todo: TODO (LEFT_PAREN STRING RIGHT_PAREN)?;
-tuple: HASH LEFT_PAREN (expression (COMMA expression)* (COMMA)?)? RIGHT_PAREN;
+todo: TODO (PAR_OPEN STRING PAR_CLOSE)?;
+tuple: HASH PAR_OPEN (expression (COMMA expression)* (COMMA)?)? PAR_CLOSE;
 
 list_ellipsis: DOT_DOT expression;
 list_body: expression (COMMA expression)* COMMA? list_ellipsis?;
-list: LEFT_SQUARE list_body? RIGHT_SQUARE;
+list: SQUARE_OPEN list_body? SQUARE_CLOSE;
 
 anonymous_function_parameter_args: discard_param | name_param;
 anonymous_function_parameter: anonymous_function_parameter_args (type_annotation)?;
-anonymous_function_parameters: LEFT_PAREN (anonymous_function_parameter (COMMA anonymous_function_parameter)* (COMMA)?)? RIGHT_PAREN;
+anonymous_function_parameters: PAR_OPEN (anonymous_function_parameter (COMMA anonymous_function_parameter)* (COMMA)?)? PAR_CLOSE;
 anonymous_function: FN anonymous_function_parameters (R_ARROW type)? function_body;
 
-expression_group: LEFT_BRACE expression_try_list1 RIGHT_BRACE;
+expression_group: CURLY_OPEN expression_try_list1 CURLY_CLOSE;
 
 case_clause_tuple_access: identifier DOT integer;
-case_clause_guard_unit: identifier | case_clause_tuple_access | LEFT_BRACE case_clause_guard_expression RIGHT_BRACE | constant_value;
+case_clause_guard_unit: identifier | case_clause_tuple_access | CURLY_OPEN case_clause_guard_expression CURLY_CLOSE | constant_value;
 case_clause_guard_binary_operator: BARBAR | ANDAND | EQEQ | NEQ | LESS | LESS_EQUAL | LESS_DOT
     | LESS_EQUAL_DOT | GREATER | GREATER_EQUAL | GREATER_DOT | GREATER_EQUAL_DOT;
 case_clause_guard_expression
@@ -137,7 +140,7 @@ case_clause_patterns: case_clause_pattern (BAR case_clause_pattern)* (BAR)?;
 case_clause: case_clause_patterns (case_clause_guard)? R_ARROW expression;
 case_clauses: (case_clause)+;
 case_subjects: expression_try_list1;
-case: CASE case_subjects LEFT_BRACE case_clauses RIGHT_BRACE;
+case: CASE case_subjects CURLY_OPEN case_clauses CURLY_CLOSE;
 
 use_args: identifier | identifier COMMA use_args;
 use: USE (use_args)? L_ARROW expression;
@@ -149,7 +152,7 @@ negation: BANG expression_unit;
 
 record_update_argument: label COLON expression;
 record_update_arguments: record_update_argument (COMMA record_update_argument)* (COMMA)?;
-record_update: (constructor_name | remote_constructor_name) LEFT_PAREN DOT_DOT expression COMMA record_update_arguments RIGHT_PAREN;
+record_update: (constructor_name | remote_constructor_name) PAR_OPEN DOT_DOT expression COMMA record_update_arguments PAR_CLOSE;
 
 call_or_access_options: argument_list | (DOT label) | (DOT integer);
 // this deviates from the treesitter spec - it is function_call + field_access + tuple_access all in one rule to avoid indirect left recursion
@@ -212,20 +215,24 @@ expression
     ;
 
 data_constructor_argument: (label COLON)? type_base;
-data_constructor_arguments: LEFT_PAREN (data_constructor_argument (COMMA data_constructor_argument)* (COMMA)?)? RIGHT_PAREN;
+data_constructor_arguments: PAR_OPEN (data_constructor_argument (COMMA data_constructor_argument)* (COMMA)?)? PAR_CLOSE;
 data_constructor: constructor_name (data_constructor_arguments)?;
 data_constructors: (data_constructor)+;
 
-type_definition: (visibility_modifier)? (opacity_modifier)? TYPE type_name LEFT_BRACE data_constructors RIGHT_BRACE;
+type_definition: (visibility_modifier)? (opacity_modifier)? TYPE type_name CURLY_OPEN data_constructors CURLY_CLOSE;
 type_alias: (visibility_modifier)? (opacity_modifier)? TYPE type_name EQ type;
 
-// FIXME: review name, is this really a statement or more like a module level definition
+//func_attribute_arg: STRING | LOWERCASE_IDENT;
+//func_attribute_args: func_attribute_arg (COMMA func_attribute_arg)*;
+//func_attribute_generic: AT LOWERCASE_IDENT LEFT_BRACE func_attribute_args RIGHT_BRACE;
+func_attribute_deprecated: AT 'deprecated' PAR_OPEN STRING? PAR_CLOSE;
+func_attribute_external: AT 'external' PAR_OPEN LOWERCASE_IDENT COMMA STRING COMMA STRING PAR_CLOSE;
+func_attribute: func_attribute_deprecated | func_attribute_external;
 statement
     : imports
     | constant
     | external_type
-    | external_function
-    | function
+    | (func_attribute* function)
     | type_definition
     | type_alias
     ;
@@ -256,7 +263,7 @@ AS: 'as';
 ASSERT: 'assert';
 CASE: 'case';
 CONST: 'const';
-EXTERNAL: 'external';
+//EXTERNAL: 'external';
 FN: 'fn';
 IF: 'if';
 IMPORT: 'import';
@@ -273,14 +280,15 @@ TRUE: 'True';
 FALSE: 'False';
 
 // Groupings
-LEFT_PAREN: '(';
-RIGHT_PAREN: ')';
-LEFT_SQUARE: '[';
-RIGHT_SQUARE: ']';
-LEFT_BRACE: '{';
-RIGHT_BRACE: '}';
+PAR_OPEN: '(';
+PAR_CLOSE: ')';
+SQUARE_OPEN: '[';
+SQUARE_CLOSE: ']';
+CURLY_OPEN: '{';
+CURLY_CLOSE: '}';
 
 // Operators
+AT: '@';
 // Int
 PLUS: '+';
 MINUS: '-';
