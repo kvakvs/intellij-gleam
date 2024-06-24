@@ -34,7 +34,7 @@ class GleamParserDefinition : ParserDefinition {
             override fun parse(parser: Parser, root: IElementType?): ParseTree? {
                 // start rule depends on root passed in; sometimes we want to create an ID node etc...
                 return if (root is IFileElementType) {
-                    (parser as GleamParser).source_file()
+                    (parser as GleamParser).sourceFileRoot()
                 } else (parser as GleamParser).identifier()
                 // let's hope it's an ID as needed by "rename function"
             }

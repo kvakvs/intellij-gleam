@@ -1,80 +1,68 @@
 grammar Gleam;
 
-// Root
-source_file: (statement | expression_try_list1 | target_group)* EOF;
+// Root, parsing begins from here
+sourceFileRoot: (statement | expressionTryList1 | targetGroup)* EOF;
 
 // Enforce javascript | erlang with an intellij annotator
-target_group: IF (identifier) CURLY_OPEN (statement)* CURLY_CLOSE;
+targetGroup: IF (identifier) CURLY_OPEN (statement)* CURLY_CLOSE;
 
 module : LOWERCASE_IDENT (SLASH LOWERCASE_IDENT)*;
-unqualified_import
-    : LOWERCASE_IDENT (AS LOWERCASE_IDENT)?
+unqualifiedImport: LOWERCASE_IDENT (AS LOWERCASE_IDENT)?
     | TYPE? UPPERCASE_IDENT (AS UPPERCASE_IDENT)?
     ;
-unqualified_imports
-    : CURLY_OPEN (unqualified_import (COMMA unqualified_import)* (COMMA)?)? CURLY_CLOSE
-    ;
-imports
-    : IMPORT module (DOT unqualified_imports)? (AS LOWERCASE_IDENT)?
-    ;
+unqualifiedImports: CURLY_OPEN (unqualifiedImport (COMMA unqualifiedImport)* (COMMA)?)? CURLY_CLOSE;
+imports: IMPORT module (DOT unqualifiedImports)? (AS LOWERCASE_IDENT)?;
 
-constant_function_parameter_types
-    : PAR_OPEN (constant_type_special (COMMA constant_type_special)* (COMMA)?)? PAR_CLOSE;
-constant_type_function
-    : FN (constant_function_parameter_types)? R_ARROW constant_type_special
-    ;
+// Literal function type: fn (ArgType, ...) -> RetType
+literalFuncTypeParameters: PAR_OPEN (typeLiteralSpecial (COMMA typeLiteralSpecial)* (COMMA)?)? PAR_CLOSE;
+literalFuncType: FN (literalFuncTypeParameters)? R_ARROW typeLiteralSpecial;
 
-constant_tuple: HASH PAR_OPEN (constant_value (COMMA constant_value)* (COMMA)?)? PAR_CLOSE;
-constant_type_tuple
-    : HASH PAR_OPEN (constant_type_special (COMMA constant_type_special)* (COMMA)?)? PAR_CLOSE;
+// Literal tuple { value1, value2... }
+literalTuple: HASH PAR_OPEN (literal (COMMA literal)* (COMMA)?)? PAR_CLOSE;
+// Literal tuple of types { Type1, Type2... }
+literalTupleType: HASH PAR_OPEN (typeLiteralSpecial (COMMA typeLiteralSpecial)* (COMMA)?)? PAR_CLOSE;
 
-constant_type_arguement: constant_type_special;
-constant_type_arguements: PAR_OPEN (constant_type_arguement (COMMA constant_type_arguement)* (COMMA)?)? PAR_CLOSE;
+// Literal type: type arguments ( Type1, Type2, ... )
+literalTypeArgument: typeLiteralSpecial;
+literalTypeArguments: PAR_OPEN (literalTypeArgument (COMMA literalTypeArgument)* (COMMA)?)? PAR_CLOSE;
 
-constant_list: SQUARE_OPEN (constant_value (COMMA constant_value )* (COMMA)?)? SQUARE_CLOSE;
+literalList: SQUARE_OPEN (literal (COMMA literal )* (COMMA)?)? SQUARE_CLOSE;
 
-constant_record_argument: (label COLON)? constant_value;
-constant_record_arguments: PAR_OPEN (constant_record_argument (COMMA (constant_record_argument)* (COMMA)?))? PAR_CLOSE;
-constant_record : (constructor_name | remote_constructor_name) (constant_record_arguments)?;
+litRecordArgument: (label COLON)? literal;
+litRecordArguments: PAR_OPEN (litRecordArgument (COMMA (litRecordArgument)* (COMMA)?))? PAR_CLOSE;
+literalRecord : (ctorName | remoteCtorName) (litRecordArguments)?;
 
 integer: INT;
-bit_string_segment_option_size : identifier PAR_OPEN integer PAR_CLOSE;
+bitstringSegmentOptionSize : identifier PAR_OPEN integer PAR_CLOSE;
 // 'binary' | 'bytes' | 'int' | 'float' | 'bit_string' | 'bits' | 'utf8' | 'utf16' | 'utf32' | 'utf8_codepoint' | 'utf16_codepoint' | 'utf32_codepoint' | 'signed' | 'unsigned' | 'big' | 'little' | 'native' | 'unit' '(' INTEGER ')';
 // enforce value for identifier for these surrounding 2 rules with an intelliJ annotator
-bit_string_named_segment_option: identifier | bit_string_segment_option_size;
-bit_string_segment_option: bit_string_named_segment_option | integer;
-bit_string_segment_options: bit_string_segment_option (MINUS bit_string_segment_option)*  (MINUS)?;
-constant_bit_string_segment: constant_value (COLON bit_string_segment_options)?;
-constant_bit_string: LTLT  (constant_bit_string_segment (COMMA constant_bit_string_segment)* (COMMA)?)? GTGT;
+bitstringNamedSegmentOption: identifier | bitstringSegmentOptionSize;
+bitstringSegmentOption: bitstringNamedSegmentOption | integer;
+bitstringSegmentOptions: bitstringSegmentOption (MINUS bitstringSegmentOption)*  (MINUS)?;
+literalBitstringSegment: literal (COLON bitstringSegmentOptions)?;
+literalBitstring: LTLT  (literalBitstringSegment (COMMA literalBitstringSegment)* (COMMA)?)? GTGT;
 
-constant_type: (type_identifier | remote_type_identifier) (constant_type_arguements)?;
-constant_type_special
-    : type_hole
-    | constant_type_tuple
-    | constant_type_function
-    | constant_type
-    ;
-constant_type_annotation: COLON constant_type;
-constant_field_access: identifier DOT label;
-constant_value: constant_tuple | constant_list | constant_bit_string | constant_record | identifier | constant_field_access | expression_literal;
-constant
-    : (visibility_modifier)? CONST LOWERCASE_IDENT (constant_type_annotation)? EQ constant_value
-    ;
+typeLiteral: (typeIdentifier | remoteTypeIdentifier) (literalTypeArguments)?;
+typeLiteralSpecial: typeHole | literalTupleType | literalFuncType | typeLiteral;
+constantTypeAnnotation: COLON typeLiteral;
+constantFieldAccess: identifier DOT label;
+literal: literalTuple | literalList | literalBitstring | literalRecord | identifier | constantFieldAccess | literalExpression;
+constantDefinition: (visibilityModifier)? CONST LOWERCASE_IDENT (constantTypeAnnotation)? EQ literal;
 
-type_parameters: PAR_OPEN (type_parameter (COMMA type_parameter)* (COMMA)?)? PAR_CLOSE;
-type_name: (type_identifier | remote_type_identifier) (type_parameters)?;
+typeParameters: PAR_OPEN (typeParameter (COMMA typeParameter)* (COMMA)?)? PAR_CLOSE;
+typeName: (typeIdentifier | remoteTypeIdentifier) (typeParameters)?;
 //external_type: (visibility_modifier)? EXTERNAL TYPE type_name;
-external_type: visibility_modifier TYPE type_name;
+externalType: visibilityModifier TYPE typeName;
 
-function_parameter_types : PAR_OPEN (type_base (COMMA type_base)* (COMMA)?)? PAR_CLOSE;
-tuple_type: HASH PAR_OPEN (type_base (COMMA type_base)* (COMMA)?)? PAR_CLOSE;
-function_type: FN (function_parameter_types)? R_ARROW type_base;
+funcParameterTypes : PAR_OPEN (typeBase (COMMA typeBase)* (COMMA)?)? PAR_CLOSE;
+tupleType: HASH PAR_OPEN (typeBase (COMMA typeBase)* (COMMA)?)? PAR_CLOSE;
+funcType: FN (funcParameterTypes)? R_ARROW typeBase;
 
-type_base: type_hole | tuple_type | function_type | type | type_var;
-type_annotation: COLON type_base;
-type_argument: type_base;
-type_arguments: PAR_OPEN (type_argument (COMMA type_argument)* (COMMA)?)? PAR_CLOSE;
-type: (type_identifier | remote_type_identifier) (type_arguments)?;
+typeBase: typeHole | tupleType | funcType | type | typeVar;
+typeAnnotation: COLON typeBase;
+typeArgument: typeBase;
+typeArguments: PAR_OPEN (typeArgument (COMMA typeArgument)* (COMMA)?)? PAR_CLOSE;
+type: (typeIdentifier | remoteTypeIdentifier) (typeArguments)?;
 
 // FIX ME: Deprecated syntax? use @external(lang, mod, fn)? https://exercism.org/tracks/gleam/concepts/external-functions
 //external_function_body: STRING STRING;
@@ -82,113 +70,111 @@ type: (type_identifier | remote_type_identifier) (type_arguments)?;
 //external_function_parameters: LEFT_PAREN (external_function_parameter (COMMA external_function_parameter)* (COMMA)?)? RIGHT_PAREN;
 //external_function: (visibility_modifier)? EXTERNAL FN identifier external_function_parameters R_ARROW type_base EQ external_function_body;
 
-function_parameter_args: labeled_discard_param | discard_param | labeled_name_param | name_param;
-function_parameter: function_parameter_args (type_annotation)?;
-function_parameters: PAR_OPEN (function_parameter (COMMA function_parameter)* (COMMA)?)? PAR_CLOSE;
-// Gleam: parse.rs/parse_function implementation - body can follow an OPTIONAL left brace, this is not allowed in anon functions
-function_body: CURLY_OPEN expression_try_list0 CURLY_CLOSE;
-function: (visibility_modifier)? FN identifier function_parameters (R_ARROW type_base)? function_body;
+funcParameterArgs: labeledDiscardParam | discardParam | labeledNameParam | nameParam;
+funcParameter: funcParameterArgs (typeAnnotation)?;
+funcParameters: PAR_OPEN (funcParameter (COMMA funcParameter)* (COMMA)?)? PAR_CLOSE;
+// A function can contain either a single expression after -> or a { block of expressions }.
+// External functions are functions too.
+funcBody: (CURLY_OPEN expressionTryList0 CURLY_CLOSE) | expression;
+function: (visibilityModifier)? FN identifier funcParameters (R_ARROW typeBase)? funcBody?;
 
-list_pattern_tail: DOT_DOT (identifier | discard)?;
-list_pattern: SQUARE_OPEN (pattern (COMMA pattern)* (COMMA)?)? (list_pattern_tail)? SQUARE_CLOSE;
+listPatternTail: DOT_DOT (identifier | discard)?;
+listPattern: SQUARE_OPEN (pattern (COMMA pattern)* (COMMA)?)? (listPatternTail)? SQUARE_CLOSE;
 
-pattern_bit_string_segment: pattern (COLON bit_string_segment_options)?;
-pattern_bit_string: LTLT (pattern_bit_string_segment (COMMA pattern_bit_string_segment)* (COMMA)?)? GTGT;
+bitstringPatternSegment: pattern (COLON bitstringSegmentOptions)?;
+bitstringPattern: LTLT (bitstringPatternSegment (COMMA bitstringPatternSegment)* (COMMA)?)? GTGT;
 
-tuple_pattern: HASH PAR_OPEN (pattern (COMMA pattern)* (COMMA)?)? PAR_CLOSE;
-pattern_spread: (DOT_DOT (COMMA)?);
-record_pattern_argument: (label COLON)? pattern;
-record_pattern_arguments: PAR_OPEN (record_pattern_argument (COMMA record_pattern_argument)* (COMMA)?)? (pattern_spread)? PAR_CLOSE;
-record_pattern: (constructor_name | remote_constructor_name) (record_pattern_arguments)?;
-pattern: (identifier | discard | record_pattern | expression_literal | tuple_pattern | pattern_bit_string | list_pattern) (AS identifier)?;
+tuplePattern: HASH PAR_OPEN (pattern (COMMA pattern)* (COMMA)?)? PAR_CLOSE;
+patternSpread: (DOT_DOT (COMMA)?);
+recordPatternArgument: (label COLON)? pattern;
+recordPatternArguments: PAR_OPEN (recordPatternArgument (COMMA recordPatternArgument)* (COMMA)?)? (patternSpread)? PAR_CLOSE;
+recordPattern: (ctorName | remoteCtorName) (recordPatternArguments)?;
+pattern: (identifier | discard | recordPattern | literalExpression | tuplePattern | bitstringPattern | listPattern) (AS identifier)?;
 
-try: TRY pattern (type_annotation)? EQ expression;
-expression_try_list1: (expression | try)+;
-expression_try_list0: (expression | try)*;
+try: TRY pattern (typeAnnotation)? EQ expression;
+expressionTryList1: (expression | try)+;
+expressionTryList0: (expression | try)*;
 
-argument: (label ':')? (hole | expression);
-argument_list: PAR_OPEN (argument (COMMA argument)* (COMMA)?)? PAR_CLOSE;
-record: (constructor_name | remote_constructor_name) (argument_list)?;
+recordArgument: (label ':')? (hole | expression);
+recordArgumentList: PAR_OPEN (recordArgument (COMMA recordArgument)* (COMMA)?)? PAR_CLOSE;
+record: (ctorName | remoteCtorName) (recordArgumentList)?;
 
-expression_bit_string_segment: expression_unit (COLON bit_string_segment_options)?;
-expression_bit_string: LTLT (expression_bit_string_segment (COMMA expression_bit_string_segment)* (COMMA)?)? GTGT;
+expressionBitstringSegment: expressionUnit (COLON bitstringSegmentOptions)?;
+expressionBitstring: LTLT (expressionBitstringSegment (COMMA expressionBitstringSegment)* (COMMA)?)? GTGT;
 
 todo: TODO (PAR_OPEN STRING PAR_CLOSE)?;
 tuple: HASH PAR_OPEN (expression (COMMA expression)* (COMMA)?)? PAR_CLOSE;
 
-list_ellipsis: DOT_DOT expression;
-list_body: expression (COMMA expression)* COMMA? list_ellipsis?;
-list: SQUARE_OPEN list_body? SQUARE_CLOSE;
+listSpread: DOT_DOT expression;
+listBody: expression (COMMA expression)* COMMA? listSpread?;
+list: SQUARE_OPEN listBody? SQUARE_CLOSE;
 
-anonymous_function_parameter_args: discard_param | name_param;
-anonymous_function_parameter: anonymous_function_parameter_args (type_annotation)?;
-anonymous_function_parameters: PAR_OPEN (anonymous_function_parameter (COMMA anonymous_function_parameter)* (COMMA)?)? PAR_CLOSE;
-anonymous_function: FN anonymous_function_parameters (R_ARROW type)? function_body;
+anonFuncParameterArgs: discardParam | nameParam;
+anonFuncParameter: anonFuncParameterArgs (typeAnnotation)?;
+anonFuncParameters: PAR_OPEN (anonFuncParameter (COMMA anonFuncParameter)* (COMMA)?)? PAR_CLOSE;
+anonFunc: FN anonFuncParameters (R_ARROW type)? funcBody;
 
-expression_group: CURLY_OPEN expression_try_list1 CURLY_CLOSE;
+expressionGroup: CURLY_OPEN expressionTryList1 CURLY_CLOSE;
 
-case_clause_tuple_access: identifier DOT integer;
-case_clause_guard_unit: identifier | case_clause_tuple_access | CURLY_OPEN case_clause_guard_expression CURLY_CLOSE | constant_value;
-case_clause_guard_binary_operator: BARBAR | ANDAND | EQEQ | NEQ | LESS | LESS_EQUAL | LESS_DOT
+caseClauseTupleAccess: identifier DOT integer;
+caseClauseGuardUnit: identifier | caseClauseTupleAccess | CURLY_OPEN caseClauseGuardExpression CURLY_CLOSE | literal;
+caseClauseGuardBinaryOperator: BARBAR | ANDAND | EQEQ | NEQ | LESS | LESS_EQUAL | LESS_DOT
     | LESS_EQUAL_DOT | GREATER | GREATER_EQUAL | GREATER_DOT | GREATER_EQUAL_DOT;
-case_clause_guard_expression
-    : case_clause_guard_expression case_clause_guard_binary_operator case_clause_guard_expression
-    | case_clause_guard_unit;
-case_clause_guard: IF case_clause_guard_expression;
-case_clause_pattern: pattern (COMMA pattern)*  (COMMA)?;
-case_clause_patterns: case_clause_pattern (BAR case_clause_pattern)* (BAR)?;
-case_clause: case_clause_patterns (case_clause_guard)? R_ARROW expression;
-case_clauses: (case_clause)+;
-case_subjects: expression_try_list1;
-case: CASE case_subjects CURLY_OPEN case_clauses CURLY_CLOSE;
+caseClauseGuardExpression: caseClauseGuardExpression caseClauseGuardBinaryOperator
+    caseClauseGuardExpression | caseClauseGuardUnit;
+caseClauseGuard: IF caseClauseGuardExpression;
+caseClausePattern: pattern (COMMA pattern)*  (COMMA)?;
+caseClausePatterns: caseClausePattern (BAR caseClausePattern)* (BAR)?;
+caseClause: caseClausePatterns (caseClauseGuard)? R_ARROW expression;
+//caseClauses: (caseClause)+;
+caseSubjects: expressionTryList1;
+case: CASE caseSubjects CURLY_OPEN caseClause+ CURLY_CLOSE;
 
-use_args: identifier | identifier COMMA use_args;
-use: USE (use_args)? L_ARROW expression;
+useArgs: identifier | identifier COMMA useArgs;
+use: USE (useArgs)? L_ARROW expression;
 
-assignment: pattern (type_annotation)? EQ expression;
+assignment: pattern (typeAnnotation)? EQ expression;
 let: LET assignment;
 assert: ASSERT assignment;
-negation: BANG expression_unit;
+negation: BANG expressionUnit;
 
-record_update_argument: label COLON expression;
-record_update_arguments: record_update_argument (COMMA record_update_argument)* (COMMA)?;
-record_update: (constructor_name | remote_constructor_name) PAR_OPEN DOT_DOT expression COMMA record_update_arguments PAR_CLOSE;
+recordUpdateArgument: label COLON expression;
+recordUpdateArguments: recordUpdateArgument (COMMA recordUpdateArgument)* (COMMA)?;
+recordUpdate: (ctorName | remoteCtorName) PAR_OPEN DOT_DOT expression COMMA recordUpdateArguments PAR_CLOSE;
 
-call_or_access_options: argument_list | (DOT label) | (DOT integer);
+callOrAccessOptions: recordArgumentList | (DOT label) | (DOT integer);
 // this deviates from the treesitter spec - it is function_call + field_access + tuple_access all in one rule to avoid indirect left recursion
-call_or_access
-     : call_or_access   call_or_access_options
-     | case             call_or_access_options
-     | identifier       call_or_access_options
-     | expression_group call_or_access_options
+callOrAccess
+     : callOrAccess     callOrAccessOptions
+     | case             callOrAccessOptions
+     | identifier       callOrAccessOptions
+     | expressionGroup  callOrAccessOptions
      | record DOT label
-     | record_update DOT label
+     | recordUpdate DOT label
      | tuple DOT integer
-     | anonymous_function argument_list
-     ;
+     | anonFunc recordArgumentList;
 
-expression_literal: STRING | FLOAT | integer | boolean;
-expression_unit
+literalExpression: STRING | FLOAT | integer | boolean;
+expressionUnit
     : record
-    | anonymous_function
+    | anonFunc
     | identifier
     | todo
     | tuple
     | list
-    | expression_bit_string
-    | expression_group
+    | expressionBitstring
+    | expressionGroup
     | case
     | let
     | use
     | assert
     | negation
-    | record_update
-    | call_or_access
-    | expression_literal
-    ;
+    | recordUpdate
+    | callOrAccess
+    | literalExpression;
 
 expression
-    : expression_unit #unit
+    : expressionUnit #unit
     | left=expression EQEQ right=expression #eq
     | left=expression NEQ right=expression #neq
     | left=expression LESS right=expression #lt
@@ -211,51 +197,50 @@ expression
     | left=expression SLASH_DOT right=expression #slashf
     | left=expression PERCENT right=expression #percent
     | left=expression ANDAND right=expression #and
-    | left=expression BARBAR right=expression #or
-    ;
+    | left=expression BARBAR right=expression #or ;
 
-data_constructor_argument: (label COLON)? type_base;
-data_constructor_arguments: PAR_OPEN (data_constructor_argument (COMMA data_constructor_argument)* (COMMA)?)? PAR_CLOSE;
-data_constructor: constructor_name (data_constructor_arguments)?;
-data_constructors: (data_constructor)+;
+dataCtorArgument: (label COLON)? typeBase;
+dataCtorArguments: PAR_OPEN (dataCtorArgument (COMMA dataCtorArgument)* (COMMA)?)? PAR_CLOSE;
+dataConstructor: ctorName (dataCtorArguments)?;
+//data_constructors: (data_constructor)+;
 
-type_definition: (visibility_modifier)? (opacity_modifier)? TYPE type_name CURLY_OPEN data_constructors CURLY_CLOSE;
-type_alias: (visibility_modifier)? (opacity_modifier)? TYPE type_name EQ type;
+typeDefinition: (visibilityModifier)? (opacityModifier)? TYPE typeName CURLY_OPEN dataConstructor+ CURLY_CLOSE;
+typeAlias: (visibilityModifier)? (opacityModifier)? TYPE typeName EQ type;
 
 //func_attribute_arg: STRING | LOWERCASE_IDENT;
 //func_attribute_args: func_attribute_arg (COMMA func_attribute_arg)*;
 //func_attribute_generic: AT LOWERCASE_IDENT LEFT_BRACE func_attribute_args RIGHT_BRACE;
-func_attribute_deprecated: AT 'deprecated' PAR_OPEN STRING? PAR_CLOSE;
-func_attribute_external: AT 'external' PAR_OPEN LOWERCASE_IDENT COMMA STRING COMMA STRING PAR_CLOSE;
-func_attribute: func_attribute_deprecated | func_attribute_external;
+funcAttrDeprecated: AT 'deprecated' PAR_OPEN STRING? PAR_CLOSE;
+funcAttrExternal: AT 'external' PAR_OPEN LOWERCASE_IDENT COMMA STRING COMMA STRING PAR_CLOSE;
+funcAttr: funcAttrDeprecated | funcAttrExternal;
 statement
     : imports
-    | constant
-    | external_type
-    | (func_attribute* function)
-    | type_definition
-    | type_alias
+    | constantDefinition
+    | externalType
+    | (funcAttr* function)
+    | typeDefinition
+    | typeAlias
     ;
 
 ///// Aliases (maybe not needed by why not have them for now and we can delete later
 // any_ident:  LOWERCASE_IDENT | UPPERCASE_IDENT | IGNORED_IDENT;
 identifier: LOWERCASE_IDENT;
-constructor_name: UPPERCASE_IDENT;
-type_identifier: UPPERCASE_IDENT;
+ctorName: UPPERCASE_IDENT;
+typeIdentifier: UPPERCASE_IDENT;
 discard: IGNORED_IDENT;
 label: LOWERCASE_IDENT;
-type_parameter: LOWERCASE_IDENT;
-type_var: LOWERCASE_IDENT;
-type_hole: LOWERCASE_IDENT;
+typeParameter: LOWERCASE_IDENT;
+typeVar: LOWERCASE_IDENT;
+typeHole: LOWERCASE_IDENT;
 hole: IGNORED_IDENT;
-discard_param: discard;
-name_param: identifier;
-labeled_name_param: label identifier;
-labeled_discard_param: label discard;
-remote_constructor_name: identifier DOT constructor_name;
-remote_type_identifier: identifier DOT type_identifier;
-visibility_modifier: PUB;
-opacity_modifier: OPAQUE;
+discardParam: discard;
+nameParam: identifier;
+labeledNameParam: label identifier;
+labeledDiscardParam: label discard;
+remoteCtorName: identifier DOT ctorName;
+remoteTypeIdentifier: identifier DOT typeIdentifier;
+visibilityModifier: PUB;
+opacityModifier: OPAQUE;
 boolean: TRUE | FALSE;
 
 // Keywords
