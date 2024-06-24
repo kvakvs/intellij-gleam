@@ -16,6 +16,7 @@ enum class GleamColor(humanName: Supplier<@AttributeDescriptor String>, default:
 
     STRING(GleamBundle.messagePointer("settings.gleam.color.string"), Default.STRING),
     NUMBER(GleamBundle.messagePointer("settings.gleam.color.number"), Default.NUMBER),
+    FLOAT(GleamBundle.messagePointer("settings.gleam.color.float"), Default.NUMBER),
     BOOLEAN(GleamBundle.messagePointer("settings.gleam.color.boolean"), Default.KEYWORD),
 
     BRACES(GleamBundle.messagePointer("settings.gleam.color.brace"), Default.BRACES),

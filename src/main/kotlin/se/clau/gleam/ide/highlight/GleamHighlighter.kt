@@ -21,9 +21,9 @@ class GleamHighlighter : SyntaxHighlighterBase() {
 fun map(tokenType: IElementType?): GleamColor? {
     if (tokenType !is TokenIElementType) return null
     return when (tokenType.antlrTokenType) {
-        GleamLexer.COMMENT_NORMAL -> GleamColor.COMMENT
-        GleamLexer.COMMENT_DOC -> GleamColor.DOC_COMMENT
-        GleamLexer.COMMENT_MODULE -> GleamColor.MODULE_COMMENT
+        GleamLexer.COMMENT -> GleamColor.COMMENT
+        GleamLexer.DOC_COMMENT -> GleamColor.DOC_COMMENT
+        GleamLexer.MODULE_COMMENT -> GleamColor.MODULE_COMMENT
 
         GleamLexer.AS, GleamLexer.ASSERT, GleamLexer.CASE, GleamLexer.CONST,
         GleamLexer.EXTERNAL, GleamLexer.FN, GleamLexer.IF, GleamLexer.IMPORT,
@@ -31,7 +31,8 @@ fun map(tokenType: IElementType?): GleamColor? {
         GleamLexer.TRY, GleamLexer.TYPE, GleamLexer.USE -> GleamColor.KEYWORD
 
         GleamLexer.STRING -> GleamColor.STRING
-        GleamLexer.DECIMAL -> GleamColor.NUMBER
+        GleamLexer.DEC_INT, GleamLexer.BIN_INT, GleamLexer.OCT_INT, GleamLexer.HEX_INT -> GleamColor.NUMBER
+        GleamLexer.FLOAT -> GleamColor.FLOAT
         GleamLexer.TRUE, GleamLexer.FALSE -> GleamColor.BOOLEAN
 
         GleamLexer.LEFT_BRACE, GleamLexer.RIGHT_BRACE -> GleamColor.BRACES
@@ -43,7 +44,7 @@ fun map(tokenType: IElementType?): GleamColor? {
         GleamLexer.LESS_EQUAL_DOT, GleamLexer.LESS_DOT,
         GleamLexer.L_ARROW, GleamLexer.R_ARROW -> GleamColor.OPERATION_SIGN
 
-        GleamLexer.DISCARD_NAME -> GleamColor.DISCARDED_VARIABLE
+        GleamLexer.IGNORED_IDENT -> GleamColor.DISCARDED_VARIABLE
 
         else -> null
     }

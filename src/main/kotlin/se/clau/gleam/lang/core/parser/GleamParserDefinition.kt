@@ -40,6 +40,7 @@ class GleamParserDefinition : ParserDefinition {
             }
         }
     }
+
     override fun createElement(node: ASTNode): PsiElement {
         val elType = node.elementType
         if (elType is TokenIElementType) {
@@ -52,22 +53,34 @@ class GleamParserDefinition : ParserDefinition {
             else -> ANTLRPsiNode(node)
         }
     }
+
     override fun createFile(viewProvider: FileViewProvider): PsiFile = GleamFile(viewProvider)
 
     override fun getFileNodeType(): IFileElementType = file
-    override fun getCommentTokens(): TokenSet = PSIElementTypeFactory.createTokenSet(GleamLanguage, GleamLexer.COMMENT_DOC, GleamLexer.COMMENT_MODULE, GleamLexer.COMMENT_NORMAL)
-    override fun getWhitespaceTokens(): TokenSet = PSIElementTypeFactory.createTokenSet(GleamLanguage, GleamLexer.WHITESPACE)
-    override fun getStringLiteralElements(): TokenSet = PSIElementTypeFactory.createTokenSet(GleamLanguage, GleamLexer.STRING)
+    override fun getCommentTokens(): TokenSet = PSIElementTypeFactory.createTokenSet(
+        GleamLanguage,
+        GleamLexer.DOC_COMMENT,
+        GleamLexer.MODULE_COMMENT,
+        GleamLexer.COMMENT
+    )
+
+    override fun getWhitespaceTokens(): TokenSet =
+        PSIElementTypeFactory.createTokenSet(GleamLanguage, GleamLexer.WHITESPACE)
+
+    override fun getStringLiteralElements(): TokenSet =
+        PSIElementTypeFactory.createTokenSet(GleamLanguage, GleamLexer.STRING)
 
     companion object {
         var ID: TokenIElementType
+
         init {
             PSIElementTypeFactory.defineLanguageIElementTypes(
                 GleamLanguage,
                 GleamParser.tokenNames,
-                GleamParser.ruleNames)
+                GleamParser.ruleNames
+            )
             val tokenIElementTypes: List<TokenIElementType> = PSIElementTypeFactory.getTokenIElementTypes(GleamLanguage)
-            ID = tokenIElementTypes[GleamLexer.ID]
+            ID = tokenIElementTypes[GleamLexer.IDENT]
         }
     }
 }

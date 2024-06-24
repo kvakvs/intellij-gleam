@@ -1,20 +1,20 @@
 grammar Gleam;
 
-source_file: (statement | expression_seq | target_group)* EOF;
+source_file: (statement | expression_try_list1 | target_group)* EOF;
 
 // Enforce javascript | erlang with an intellij annotator
 target_group: IF (identifier) LEFT_BRACE (statement)* RIGHT_BRACE;
 
-module : NAME (SLASH NAME)*;
+module : LOWERCASE_IDENT (SLASH LOWERCASE_IDENT)*;
 unqualified_import
-    : NAME (AS NAME)?
-    | UP_NAME (AS UP_NAME)?
+    : LOWERCASE_IDENT (AS LOWERCASE_IDENT)?
+    | UPPERCASE_IDENT (AS UPPERCASE_IDENT)?
     ;
 unqualified_imports
     : LEFT_BRACE (unqualified_import (COMMA unqualified_import)* (COMMA)?)? RIGHT_BRACE
     ;
 imports
-    : IMPORT module (DOT unqualified_imports)? (AS NAME)?
+    : IMPORT module (DOT unqualified_imports)? (AS LOWERCASE_IDENT)?
     ;
 
 constant_function_parameter_types
@@ -36,11 +36,12 @@ constant_record_argument: (label COLON)? constant_value;
 constant_record_arguments: LEFT_PAREN (constant_record_argument (COMMA (constant_record_argument)* (COMMA)?))? RIGHT_PAREN;
 constant_record : (constructor_name | remote_constructor_name) (constant_record_arguments)?;
 
-bit_string_segment_option_size : identifier LEFT_PAREN INTEGER RIGHT_PAREN;
+integer: BIN_INT | OCT_INT | DEC_INT | HEX_INT;
+bit_string_segment_option_size : identifier LEFT_PAREN integer RIGHT_PAREN;
 // 'binary' | 'bytes' | 'int' | 'float' | 'bit_string' | 'bits' | 'utf8' | 'utf16' | 'utf32' | 'utf8_codepoint' | 'utf16_codepoint' | 'utf32_codepoint' | 'signed' | 'unsigned' | 'big' | 'little' | 'native' | 'unit' '(' INTEGER ')';
 // enforce value for identifier for these surrounding 2 rules with an intelliJ annotator
 bit_string_named_segment_option: identifier | bit_string_segment_option_size;
-bit_string_segment_option: bit_string_named_segment_option | INTEGER;
+bit_string_segment_option: bit_string_named_segment_option | integer;
 bit_string_segment_options: bit_string_segment_option (MINUS bit_string_segment_option)*  (MINUS)?;
 constant_bit_string_segment: constant_value (COLON bit_string_segment_options)?;
 constant_bit_string: LT_LT  (constant_bit_string_segment (COMMA constant_bit_string_segment)* (COMMA)?)? GT_GT;
@@ -56,7 +57,7 @@ constant_type_annotation: COLON constant_type;
 constant_field_access: identifier DOT label;
 constant_value: constant_tuple | constant_list | constant_bit_string | constant_record | identifier | constant_field_access | expression_literal;
 constant
-    : (visibility_modifier)? CONST NAME (constant_type_annotation)? EQUAL constant_value
+    : (visibility_modifier)? CONST LOWERCASE_IDENT (constant_type_annotation)? EQUAL constant_value
     ;
 
 type_parameters: LEFT_PAREN (type_parameter (COMMA type_parameter)* (COMMA)?)? RIGHT_PAREN;
@@ -81,7 +82,8 @@ external_function: (visibility_modifier)? EXTERNAL FN identifier external_functi
 function_parameter_args: labeled_discard_param | discard_param | labeled_name_param | name_param;
 function_parameter: function_parameter_args (type_annotation)?;
 function_parameters: LEFT_PAREN (function_parameter (COMMA function_parameter)* (COMMA)?)? RIGHT_PAREN;
-function_body: LEFT_BRACE (expression_seq)? RIGHT_BRACE;
+// Gleam: parse.rs/parse_function implementation - body can follow an OPTIONAL left brace, this is not allowed in anon functions
+function_body: LEFT_BRACE expression_try_list0 RIGHT_BRACE;
 function: (visibility_modifier)? FN identifier function_parameters (R_ARROW type_base)? function_body;
 
 list_pattern_tail: DOT_DOT (identifier | discard)?;
@@ -98,27 +100,31 @@ record_pattern: (constructor_name | remote_constructor_name) (record_pattern_arg
 pattern: (identifier | discard | record_pattern | expression_literal | tuple_pattern | pattern_bit_string | list_pattern) (AS identifier)?;
 
 try: TRY pattern (type_annotation)? EQUAL expression;
-expression_seq: (expression | try)+;
+expression_try_list1: (expression | try)+;
+expression_try_list0: (expression | try)*;
 
 argument: (label ':')? (hole | expression);
-arguments: LEFT_PAREN (argument (COMMA argument)* (COMMA)?)? RIGHT_PAREN;
-record: (constructor_name | remote_constructor_name) (arguments)?;
+argument_list: LEFT_PAREN (argument (COMMA argument)* (COMMA)?)? RIGHT_PAREN;
+record: (constructor_name | remote_constructor_name) (argument_list)?;
 
 expression_bit_string_segment: expression_unit (COLON bit_string_segment_options)?;
 expression_bit_string: LT_LT (expression_bit_string_segment (COMMA expression_bit_string_segment)* (COMMA)?)? GT_GT;
 
 todo: TODO (LEFT_PAREN STRING RIGHT_PAREN)?;
 tuple: HASH LEFT_PAREN (expression (COMMA expression)* (COMMA)?)? RIGHT_PAREN;
-list: LEFT_SQUARE (expression ((COMMA expression)*)? (COMMA)? ('..' expression)?)? RIGHT_SQUARE;
+
+list_ellipsis: DOT_DOT expression;
+list_body: expression (COMMA expression)* COMMA? list_ellipsis?;
+list: LEFT_SQUARE list_body? RIGHT_SQUARE;
 
 anonymous_function_parameter_args: discard_param | name_param;
 anonymous_function_parameter: anonymous_function_parameter_args (type_annotation)?;
 anonymous_function_parameters: LEFT_PAREN (anonymous_function_parameter (COMMA anonymous_function_parameter)* (COMMA)?)? RIGHT_PAREN;
 anonymous_function: FN anonymous_function_parameters (R_ARROW type)? function_body;
 
-expression_group: LEFT_BRACE expression_seq RIGHT_BRACE;
+expression_group: LEFT_BRACE expression_try_list1 RIGHT_BRACE;
 
-case_clause_tuple_access: identifier DOT INTEGER;
+case_clause_tuple_access: identifier DOT integer;
 case_clause_guard_unit: identifier | case_clause_tuple_access | LEFT_BRACE case_clause_guard_expression RIGHT_BRACE | constant_value;
 case_clause_guard_binary_operator: VBAR_VBAR | AMPER_AMPER | EQUAL_EQUAL | NOT_EQUAL | LESS | LESS_EQUAL | LESS_DOT
     | LESS_EQUAL_DOT | GREATER | GREATER_EQUAL | GREATER_DOT | GREATER_EQUAL_DOT;
@@ -130,7 +136,7 @@ case_clause_pattern: pattern (COMMA pattern)*  (COMMA)?;
 case_clause_patterns: case_clause_pattern (VBAR case_clause_pattern)* (VBAR)?;
 case_clause: case_clause_patterns (case_clause_guard)? R_ARROW expression;
 case_clauses: (case_clause)+;
-case_subjects: expression_seq;
+case_subjects: expression_try_list1;
 case: CASE case_subjects LEFT_BRACE case_clauses RIGHT_BRACE;
 
 use_args: identifier | identifier COMMA use_args;
@@ -145,7 +151,7 @@ record_update_argument: label COLON expression;
 record_update_arguments: record_update_argument (COMMA record_update_argument)* (COMMA)?;
 record_update: (constructor_name | remote_constructor_name) LEFT_PAREN DOT_DOT expression COMMA record_update_arguments RIGHT_PAREN;
 
-call_or_access_options: arguments | (DOT label) | (DOT INTEGER);
+call_or_access_options: argument_list | (DOT label) | (DOT integer);
 // this deviates from the treesitter spec - it is function_call + field_access + tuple_access all in one rule to avoid indirect left recursion
 call_or_access
      : call_or_access   call_or_access_options
@@ -154,11 +160,11 @@ call_or_access
      | expression_group call_or_access_options
      | record DOT label
      | record_update DOT label
-     | tuple DOT INTEGER
-     | anonymous_function arguments
+     | tuple DOT integer
+     | anonymous_function argument_list
      ;
 
-expression_literal: STRING | INTEGER | FLOAT | TRUE | FALSE;
+expression_literal: STRING | FLOAT | integer | boolean;
 expression_unit
     : record
     | anonymous_function
@@ -213,6 +219,7 @@ data_constructors: (data_constructor)+;
 type_definition: (visibility_modifier)? (opacity_modifier)? TYPE type_name LEFT_BRACE data_constructors RIGHT_BRACE;
 type_alias: (visibility_modifier)? (opacity_modifier)? TYPE type_name EQUAL type;
 
+// FIXME: review name, is this really a statement or more like a module level definition
 statement
     : imports
     | constant
@@ -224,15 +231,16 @@ statement
     ;
 
 ///// Aliases (maybe not needed by why not have them for now and we can delete later
-identifier: NAME;
-constructor_name: UP_NAME;
-type_identifier: UP_NAME;
-discard: DISCARD_NAME;
-label: NAME;
-type_parameter: NAME;
-type_var: NAME;
-type_hole: NAME;
-hole: DISCARD_NAME;
+// any_ident:  LOWERCASE_IDENT | UPPERCASE_IDENT | IGNORED_IDENT;
+identifier: LOWERCASE_IDENT;
+constructor_name: UPPERCASE_IDENT;
+type_identifier: UPPERCASE_IDENT;
+discard: IGNORED_IDENT;
+label: LOWERCASE_IDENT;
+type_parameter: LOWERCASE_IDENT;
+type_var: LOWERCASE_IDENT;
+type_hole: LOWERCASE_IDENT;
+hole: IGNORED_IDENT;
 discard_param: discard;
 name_param: identifier;
 labeled_name_param: label identifier;
@@ -241,6 +249,7 @@ remote_constructor_name: identifier DOT constructor_name;
 remote_type_identifier: identifier DOT type_identifier;
 visibility_modifier: PUB;
 opacity_modifier: OPAQUE;
+boolean: TRUE | FALSE;
 
 // Keywords
 AS: 'as';
@@ -315,41 +324,47 @@ DOT_DOT: '..';
 END_OF_FILE: 'EOF';
 
 // Extra
-COMMENT_NORMAL: '//'    .*? ('\n'|EOF)  -> channel(HIDDEN) ;
-COMMENT_DOC:    '///'   .*? ('\n'|EOF)	-> channel(HIDDEN) ;
-COMMENT_MODULE: '////'  .*? ('\n'|EOF)	-> channel(HIDDEN) ;
+COMMENT:        '//'    .*? ('\n'|EOF)  -> channel(HIDDEN) ;
+DOC_COMMENT:     '///'   .*? ('\n'|EOF)	-> channel(HIDDEN) ;
+MODULE_COMMENT:  '////'  .*? ('\n'|EOF)	-> channel(HIDDEN) ;
 
 // Identifiers
-NAME: [a-z_][_0-9a-z]*;
-UP_NAME: [A-Z][0-9a-zA-Z]*;
-DISCARD_NAME: '_'[_0-9a-z]*;
-ID: NAME | UP_NAME | DISCARD_NAME;
+LOWERCASE_IDENT:     [a-z_][_0-9a-z]*;
+UPPERCASE_IDENT:     [A-Z][0-9a-zA-Z]*;
+IGNORED_IDENT:       '_'[_0-9a-z]*;
+IDENT:              LOWERCASE_IDENT | UPPERCASE_IDENT | IGNORED_IDENT;
 
-// Literals
-INTEGER: '-'? (BINARY | HEX | OCTAL | DECIMAL);
-DECIMAL:    [0-9][0-9_]*;
-BINARY:  '0'[bB][0-1_]+;
-HEX:     '0'[xX][0-9a-fA-F_]+;
-OCTAL:   '0'[oO][0-7_]+;
+// Lexer: Numbers (integers)
+fragment SIGN: [+-];
 
-FLOAT
-    :   '-'? DECIMAL '.' [0-9_]+ DECIMAL?   // 1.35, 1.35E-9, 0.3, -4.5
-    |   '-'? DECIMAL '.'
-    |   '-'? DECIMAL EXP                    // 1e10 -3e4
+// Lexer: Literals
+DEC_INT:    SIGN? [0-9] ('_'? [0-9]+) *;
+BIN_INT:    SIGN? ('0b' | '0B') [0-1] ('_'? [0-1]+) *;
+HEX_INT:    SIGN? ('0x' | '0X') [0-9a-fA-F] ('_'? [0-9a-fA-F]+) *;
+OCT_INT:    SIGN? ('0o' | '0O') [0-7] ('_'? [0-7]+) *;
+//INT:        SIGN? (BIN_INT | OCT_INT | DEC_INT | HEX_INT); // order of ascending base 2, 8, 10, 16
+
+// Lexer: Float
+fragment E: [Ee];
+FLOAT: SIGN?
+    (
+        (DEC_INT '.' DEC_INT?)      // 1.35, 1.35E-9, 0.3, -4.5, +1. 10_000.0
+        | ('.' DEC_INT)             // .3, -.4, .0_000_000_1
+    )
+    (E SIGN? DEC_INT)?
     ;
-    fragment EXP: [Ee] [+\-]? DECIMAL;
 
-STRING: '"' (ESC | ~["\\])* '"' ;
-    fragment ESC: '\\' ["\bfnrt] ;
+// Lexer: String
+fragment BACKSLASH:  '\\';
+fragment ESC_CHAR:  BACKSLASH ["\bfnrt] ;
+STRING:             '"' (ESC_CHAR | ~["\\])* '"' ;
 
 WHITESPACE: [ \t\n\r]+ -> channel(HIDDEN) ;
+//CRLF: [\r?\n]+ -> channel(HIDDEN) ;
 
-/** "catch all" rule for any char not matche in a token rule of your
- *  grammar. Lexers in Intellij must return all tokens good and bad.
- *  There must be a token to cover all characters, which makes sense, for
- *  an IDE. The parser however should not see these bad tokens because
- *  it just confuses the issue. Hence, the hidden channel.
- */
+/* "catch all" rule for any char not matched in a token rule of your grammar. Lexers in Intellij must return all
+   tokens good and bad. There must be a token to cover all characters, which makes sense, for an IDE. The parser,
+   however, should not see these bad tokens because it just confuses the issue. Hence, the hidden channel. */
 ERRCHAR
     :	.	-> channel(HIDDEN)
     ;
