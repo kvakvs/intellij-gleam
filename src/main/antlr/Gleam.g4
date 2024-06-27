@@ -1,17 +1,17 @@
 grammar Gleam;
 
 // Root, parsing begins from here
-sourceFileRoot: (statement | expressionTryList1 | targetGroup)* EOF;
+sourceFileRoot: (sourceFileElement | expressionTryList1 | targetGroup)* EOF;
 
 // Enforce javascript | erlang with an intellij annotator
-targetGroup: IF (identifier) CURLY_OPEN (statement)* CURLY_CLOSE;
+targetGroup: IF (identifier) CURLY_OPEN (sourceFileElement)* CURLY_CLOSE;
 
 module : LOWERCASE_IDENT (SLASH LOWERCASE_IDENT)*;
 unqualifiedImport: LOWERCASE_IDENT (AS LOWERCASE_IDENT)?
     | TYPE? UPPERCASE_IDENT (AS UPPERCASE_IDENT)?
     ;
 unqualifiedImports: CURLY_OPEN (unqualifiedImport (COMMA unqualifiedImport)* (COMMA)?)? CURLY_CLOSE;
-imports: IMPORT module (DOT unqualifiedImports)? (AS LOWERCASE_IDENT)?;
+importLine: IMPORT module (DOT unqualifiedImports)? (AS LOWERCASE_IDENT)?;
 
 // Literal function type: fn (ArgType, ...) -> RetType
 literalFuncTypeParameters: PAR_OPEN (typeLiteralSpecial (COMMA typeLiteralSpecial)* (COMMA)?)? PAR_CLOSE;
@@ -212,9 +212,9 @@ typeAlias: (visibilityModifier)? (opacityModifier)? TYPE typeName EQ type;
 //func_attribute_generic: AT LOWERCASE_IDENT LEFT_BRACE func_attribute_args RIGHT_BRACE;
 funcAttrDeprecated: AT 'deprecated' PAR_OPEN STRING? PAR_CLOSE;
 funcAttrExternal: AT 'external' PAR_OPEN LOWERCASE_IDENT COMMA STRING COMMA STRING PAR_CLOSE;
-funcAttr: funcAttrDeprecated | funcAttrExternal;
-statement
-    : imports
+funcAttr: funcAttrDeprecated | funcAttrExternal; // no generic attr for now?
+sourceFileElement
+    : importLine
     | constantDefinition
     | externalType
     | (funcAttr* function)

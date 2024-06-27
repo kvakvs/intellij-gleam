@@ -10,19 +10,19 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
-import org.antlr.intellij.adaptor.lexer.RuleIElementType
 import org.antlr.intellij.adaptor.lexer.TokenIElementType
 import org.antlr.intellij.adaptor.parser.ANTLRParserAdaptor
-import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 import org.antlr.v4.runtime.Parser
 import org.antlr.v4.runtime.tree.ParseTree
 import se.clau.gleam.lang.GleamLanguage
 import se.clau.gleam.lang.core.psi.GleamFile
+import se.clau.gleam.lang.core.psi.GleamPsiBuilder
 
 class GleamParserDefinition : ParserDefinition {
     private val file = IFileElementType(GleamLanguage)
@@ -41,18 +41,8 @@ class GleamParserDefinition : ParserDefinition {
         }
     }
 
-    override fun createElement(node: ASTNode): PsiElement {
-        val elType = node.elementType
-        if (elType is TokenIElementType) {
-            return ANTLRPsiNode(node)
-        }
-        if (elType !is RuleIElementType) {
-            return ANTLRPsiNode(node)
-        }
-        return when (elType.ruleIndex) {
-            else -> ANTLRPsiNode(node)
-        }
-    }
+    // Delegate work to the GleamPsiFactory.
+    override fun createElement(node: ASTNode): PsiElement = GleamPsiBuilder.from(node)
 
     override fun createFile(viewProvider: FileViewProvider): PsiFile = GleamFile(viewProvider)
 
