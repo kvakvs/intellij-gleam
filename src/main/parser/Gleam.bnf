@@ -1,0 +1,333 @@
+{
+  parserClass="se.clau.gleam.lang.parser.GleamParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Gleam"
+  psiImplClassSuffix="Impl"
+  psiPackage="se.clau.gleam.lang.psi"
+  psiImplPackage="se.clau.gleam.lang.impl"
+  psiImplUtilClass="se.clau.gleam.lang.impl.GleamPsiImplUtil"
+
+  elementTypeHolderClass="se.clau.gleam.lang.psi.GleamTypes"
+  elementTypeClass="se.clau.gleam.lang.parser.GleamElementType"
+  tokenTypeClass="se.clau.gleam.lang.parser.GleamTokenType"
+
+  tokens = [
+    ASSERT_KEYWORD = "'assert' keyword"
+    LET_KEYWORD = "'let' keyword"
+    TRY_KEYWORD = "'try' keyword"
+    TYPE_KEYWORD = "'type' keyword"
+    USE_KEYWORD = "'use' keyword"
+    AS_KEYWORD     = "'as' keyword"
+    CASE_KEYWORD   = "'case' keyword"
+    CONST_KEYWORD  = "'const' keyword"
+    FN_KEYWORD     = "'fn' keyword"
+    IF_KEYWORD     = "'if' keyword"
+    IMPORT_KEYWORD = "'import' keyword"
+    OPAQUE_KEYWORD = "'opaque' keyword"
+    PUB_KEYWORD    = "'pub' keyword"
+    TODO_KEYWORD   = "'todo' keyword"
+    TRUE_KEYWORD   = "'true' atom"
+    FALSE_KEYWORD  = "'false' atom"
+
+    PAR_OPEN = "opening parenthesis"
+    PAR_CLOSE = "closing parenthesis"
+    SQUARE_OPEN = "opening square brace"
+    SQUARE_CLOSE = "closing square brace"
+    CURLY_OPEN = "opening curly brace"
+    CURLY_CLOSE = "closing curly brace"
+
+    AT = "@"
+    PLUS = "+"
+    MINUS = "-"
+    STAR = "*"
+    SLASH = "/"
+    LT = "<"
+    GT = ">"
+    LTEQ = "<="
+    GTEQ = ">="
+    PERCENT = "%"
+    PLUS_DOT = "+."
+    MINUS_DOT = "-."
+    STAR_DOT = "*."
+    SLASH_DOT = "/."
+    LT_DOT = "<."
+    GT_DOT = ">."
+    LTEQ_DOT = "<=."
+    GTEQ_DOT = ">=."
+    LT_GT = "<>"
+
+    COLON = ":"
+    COMMA = ","
+    HASH = "#"
+    BANG = "!"
+    EQ = "="
+    EQEQ = "=="
+    NEQ = "!="
+    BAR = "|"
+    BARBAR = "||"
+    ANDAND = "&&"
+    LTLT = "<<"
+    GTGT = ">>"
+    PIPE = "|>"
+    DOT = "."
+    R_ARROW = "->"
+    L_ARROW = "<-"
+    DOT_DOT = ".."
+
+    LOWERCASE_IDENT = "lowercase identifier"
+    CAPITALIZED_IDENT = "capitalized identifier"
+    IGNORED_IDENT   = "identifier starting with an underscore"
+    COMMENT = "comment //, doc comment /// or module level comment ////"
+    STRING_TOKEN = "string"
+    WHITESPACE = "whitespace"
+  ]
+}
+
+// Root, parsing begins from here
+sourceFileRoot ::= (sourceFileElement | expressionTryList1 | targetGroup)* <<eof>>
+
+private sourceFileElement ::= importLine
+    | constantDefinition
+    | externalType
+    | (funcAttr* function)
+    | typeDefinition
+    | typeAlias
+
+// Enforce javascript | erlang with an intellij annotator
+targetGroup ::= IF_KEYWORD (identifier) CURLY_OPEN (sourceFileElement)* CURLY_CLOSE
+
+module ::= LOWERCASE_IDENT (SLASH LOWERCASE_IDENT)*
+unqualifiedImport ::= LOWERCASE_IDENT (AS_KEYWORD LOWERCASE_IDENT)?
+    | TYPE_KEYWORD? CAPITALIZED_IDENT (AS_KEYWORD CAPITALIZED_IDENT)?
+private unqualifiedImports ::= CURLY_OPEN (unqualifiedImport (COMMA unqualifiedImport)* (COMMA)?)? CURLY_CLOSE
+importLine ::= IMPORT_KEYWORD module (DOT unqualifiedImports)? (AS_KEYWORD LOWERCASE_IDENT)?
+
+// Literal function type: fn (ArgType, ...) -> RetType
+literalFuncTypeParameters ::= PAR_OPEN (typeLiteralSpecial (COMMA typeLiteralSpecial)* (COMMA)?)? PAR_CLOSE
+literalFuncType ::= FN_KEYWORD (literalFuncTypeParameters)? R_ARROW typeLiteralSpecial
+
+// Literal tuple { value1, value2... }
+literalTuple ::= HASH PAR_OPEN (literal (COMMA literal)* (COMMA)?)? PAR_CLOSE
+// Literal tuple of types { Type1, Type2... }
+literalTupleType ::= HASH PAR_OPEN (typeLiteralSpecial (COMMA typeLiteralSpecial)* (COMMA)?)? PAR_CLOSE
+
+// Literal type: type arguments ( Type1, Type2, ... )
+literalTypeArgument ::= typeLiteralSpecial
+literalTypeArguments ::= PAR_OPEN (literalTypeArgument (COMMA literalTypeArgument)* (COMMA)?)? PAR_CLOSE
+
+literalList ::= SQUARE_OPEN (literal (COMMA literal )* (COMMA)?)? SQUARE_CLOSE
+
+litRecordArgument ::= (label COLON)? literal
+litRecordArguments ::= PAR_OPEN (litRecordArgument (COMMA (litRecordArgument)* (COMMA)?))? PAR_CLOSE
+literalRecord ::= (ctorName | remoteCtorName) (litRecordArguments)?
+
+integer ::= INT
+bitstringSegmentOptionSize ::= identifier PAR_OPEN integer PAR_CLOSE
+// 'binary' | 'bytes' | 'int' | 'float' | 'bit_string' | 'bits' | 'utf8' | 'utf16' | 'utf32' | 'utf8_codepoint' | 'utf16_codepoint' | 'utf32_codepoint' | 'signed' | 'unsigned' | 'big' | 'little' | 'native' | 'unit' '(' INTEGER ')';
+// enforce value for identifier for these surrounding 2 rules with an intelliJ annotator
+bitstringNamedSegmentOption ::= identifier | bitstringSegmentOptionSize
+bitstringSegmentOption ::= bitstringNamedSegmentOption | integer
+bitstringSegmentOptions ::= bitstringSegmentOption (MINUS bitstringSegmentOption)*  (MINUS)?
+literalBitstringSegment ::= literal (COLON bitstringSegmentOptions)?
+literalBitstring ::= LTLT (literalBitstringSegment (COMMA literalBitstringSegment)* (COMMA)?)? GTGT
+
+typeLiteral ::= (typeIdentifier | remoteTypeIdentifier) (literalTypeArguments)?
+typeLiteralSpecial ::= typeHole | literalTupleType | literalFuncType | typeLiteral
+constantTypeAnnotation ::= COLON typeLiteral
+constantFieldAccess ::= identifier DOT label
+literal ::= literalTuple | literalList | literalBitstring | literalRecord | identifier | constantFieldAccess | literalExpression
+constantDefinition ::= (visibilityModifier)? CONST_KEYWORD LOWERCASE_IDENT (constantTypeAnnotation)? EQ literal
+
+typeParameters ::= PAR_OPEN (typeParameter (COMMA typeParameter)* (COMMA)?)? PAR_CLOSE
+typeName ::= (typeIdentifier | remoteTypeIdentifier) (typeParameters)?
+//external_type: (visibility_modifier)? EXTERNAL TYPE type_name;
+externalType ::= visibilityModifier TYPE_KEYWORD typeName
+
+funcParameterTypes ::= PAR_OPEN (typeBase (COMMA typeBase)* (COMMA)?)? PAR_CLOSE
+tupleType ::= HASH PAR_OPEN (typeBase (COMMA typeBase)* (COMMA)?)? PAR_CLOSE
+funcType ::= FN_KEYWORD (funcParameterTypes)? R_ARROW typeBase
+
+typeBase ::= typeHole | tupleType | funcType | type | typeVar
+typeAnnotation ::= COLON typeBase
+typeArgument ::= typeBase
+typeArguments ::= PAR_OPEN (typeArgument (COMMA typeArgument)* (COMMA)?)? PAR_CLOSE
+type ::= (typeIdentifier | remoteTypeIdentifier) (typeArguments)?
+
+// FIX ME: Deprecated syntax? use @external(lang, mod, fn)? https://exercism.org/tracks/gleam/concepts/external-functions
+//external_function_body: STRING STRING;
+//external_function_parameter: (identifier COLON)? type_base;
+//external_function_parameters: LEFT_PAREN (external_function_parameter (COMMA external_function_parameter)* (COMMA)?)? RIGHT_PAREN;
+//external_function: (visibility_modifier)? EXTERNAL FN_KEYWORD identifier external_function_parameters R_ARROW type_base EQ external_function_body;
+
+funcParameterArgs ::= labeledDiscardParam | discardParam | labeledNameParam | nameParam
+funcParameter ::= funcParameterArgs (typeAnnotation)?
+funcParameters ::= PAR_OPEN (funcParameter (COMMA funcParameter)* (COMMA)?)? PAR_CLOSE
+// A function can contain either a single expression after -> or a { block of expressions }.
+// External functions are functions too.
+funcBody ::= (CURLY_OPEN expressionTryList0 CURLY_CLOSE) | expression
+function ::= (visibilityModifier)? FN_KEYWORD identifier funcParameters (R_ARROW typeBase)? funcBody?
+
+listPatternTail ::= DOT_DOT (identifier | discard)?
+listPattern ::= SQUARE_OPEN (pattern (COMMA pattern)* (COMMA)?)? (listPatternTail)? SQUARE_CLOSE
+
+bitstringPatternSegment ::= pattern (COLON bitstringSegmentOptions)?
+bitstringPattern ::= LTLT (bitstringPatternSegment (COMMA bitstringPatternSegment)* (COMMA)?)? GTGT
+
+tuplePattern ::= HASH PAR_OPEN (pattern (COMMA pattern)* (COMMA)?)? PAR_CLOSE
+patternSpread ::= (DOT_DOT (COMMA)?)
+recordPatternArgument ::= (label COLON)? pattern
+recordPatternArguments ::= PAR_OPEN (recordPatternArgument (COMMA recordPatternArgument)* (COMMA)?)? (patternSpread)? PAR_CLOSE
+recordPattern ::= (ctorName | remoteCtorName) (recordPatternArguments)?
+pattern ::= (identifier | discard | recordPattern | literalExpression | tuplePattern | bitstringPattern | listPattern) (AS_KEYWORD identifier)?
+
+try ::= TRY_KEYWORD pattern (typeAnnotation)? EQ expression
+expressionTryList1 ::= (expression | try)+
+expressionTryList0 ::= (expression | try)*
+
+recordArgument ::= (label ':')? (hole | expression)
+recordArgumentList ::= PAR_OPEN (recordArgument (COMMA recordArgument)* (COMMA)?)? PAR_CLOSE
+record ::= (ctorName | remoteCtorName) (recordArgumentList)?
+
+expressionBitstringSegment ::= expressionUnit (COLON bitstringSegmentOptions)?
+expressionBitstring ::= LTLT (expressionBitstringSegment (COMMA expressionBitstringSegment)* (COMMA)?)? GTGT
+
+todo ::= TODO_KEYWORD (PAR_OPEN string PAR_CLOSE)?
+tuple ::= HASH PAR_OPEN (expression (COMMA expression)* (COMMA)?)? PAR_CLOSE
+
+listSpread ::= DOT_DOT expression
+listBody ::= expression (COMMA expression)* COMMA? listSpread?
+list ::= SQUARE_OPEN listBody? SQUARE_CLOSE
+
+anonFuncParameterArgs ::= discardParam | nameParam
+anonFuncParameter ::= anonFuncParameterArgs (typeAnnotation)?
+anonFuncParameters ::= PAR_OPEN (anonFuncParameter (COMMA anonFuncParameter)* (COMMA)?)? PAR_CLOSE
+anonFunc ::= FN_KEYWORD anonFuncParameters (R_ARROW type)? funcBody
+
+expressionGroup ::= CURLY_OPEN expressionTryList1 CURLY_CLOSE
+
+caseClauseTupleAccess ::= identifier DOT integer
+caseClauseGuardUnit ::= identifier | caseClauseTupleAccess | CURLY_OPEN caseClauseGuardExpression CURLY_CLOSE | literal
+caseClauseGuardBinaryOperator ::= BARBAR | ANDAND | EQEQ | NEQ | LESS | LESS_EQUAL | LESS_DOT
+    | LESS_EQUAL_DOT | GREATER | GREATER_EQUAL | GREATER_DOT | GREATER_EQUAL_DOT
+caseClauseGuardExpression ::= caseClauseGuardExpression caseClauseGuardBinaryOperator
+    caseClauseGuardExpression | caseClauseGuardUnit
+caseClauseGuard ::= IF_KEYWORD caseClauseGuardExpression
+caseClausePattern ::= pattern (COMMA pattern)*  (COMMA)?
+caseClausePatterns ::= caseClausePattern (BAR caseClausePattern)* (BAR)?
+caseClause ::= caseClausePatterns (caseClauseGuard)? R_ARROW expression
+//caseClauses: (caseClause)+;
+caseSubjects ::= expressionTryList1
+case ::= CASE_KEYWORD caseSubjects CURLY_OPEN caseClause+ CURLY_CLOSE
+
+useArgs ::= identifier | identifier COMMA useArgs
+use ::= USE_KEYWORD (useArgs)? L_ARROW expression
+
+assignment ::= pattern (typeAnnotation)? EQ expression
+let ::= LET_KEYWORD assignment
+assert ::= ASSERT_KEYWORD assignment
+negation ::= BANG expressionUnit
+
+recordUpdateArgument ::= label COLON expression
+recordUpdateArguments ::= recordUpdateArgument (COMMA recordUpdateArgument)* (COMMA)?
+recordUpdate ::= (ctorName | remoteCtorName) PAR_OPEN DOT_DOT expression COMMA recordUpdateArguments PAR_CLOSE
+
+callOrAccessOptions ::= recordArgumentList | (DOT label) | (DOT integer)
+// this deviates from the treesitter spec - it is function_call + field_access + tuple_access all in one rule to avoid indirect left recursion
+callOrAccess ::= callOrAccess callOrAccessOptions
+     | case callOrAccessOptions
+     | identifier callOrAccessOptions
+     | expressionGroup callOrAccessOptions
+     | record DOT label
+     | recordUpdate DOT label
+     | tuple DOT integer
+     | anonFunc recordArgumentList
+
+literalExpression ::= string | FLOAT | integer | boolean
+expressionUnit ::= record
+    | anonFunc
+    | identifier
+    | todo
+    | tuple
+    | list
+    | expressionBitstring
+    | expressionGroup
+    | case
+    | let
+    | use
+    | assert
+    | negation
+    | recordUpdate
+    | callOrAccess
+    | literalExpression
+
+expression ::=
+//    : expressionUnit #unit
+//    | left=expression binOp right=expression;
+//// binary operations (taking left and right operands)
+//binOp: EQEQ | NEQ | LESS | LESS_EQUAL | LESS_DOT | LESS_EQUAL_DOT | GREATER | GREATER_EQUAL | GREATER_DOT
+//       | GREATER_EQUAL_DOT | LT_GT | PIPE | PLUS | PLUS_DOT | MINUS | MINUS_DOT | STAR | STAR_DOT | SLASH
+//       | SLASH_DOT | PERCENT | ANDAND | BARBAR;
+
+//expression ::= expressionUnit                            #unit
+//    | left=expression EQEQ right=expression              #eq
+//    | left=expression NEQ right=expression               #neq
+//    | left=expression LESS right=expression              #lt
+//    | left=expression LESS_EQUAL right=expression        #lte
+//    | left=expression LESS_DOT right=expression          #ltf
+//    | left=expression LESS_EQUAL_DOT right=expression    #ltef
+//    | left=expression GREATER right=expression           #gt
+//    | left=expression GREATER_EQUAL right=expression     #gte
+//    | left=expression GREATER_DOT right=expression       #gtf
+//    | left=expression GREATER_EQUAL_DOT right=expression #gtef
+//    | left=expression LT_GT right=expression             #ltgt
+//    | left=expression PIPE right=expression              #pipe
+//    | left=expression PLUS right=expression              #plus
+//    | left=expression PLUS_DOT right=expression          #plusf
+//    | left=expression MINUS right=expression             #minus
+//    | left=expression MINUS_DOT right=expression         #minusf
+//    | left=expression STAR right=expression              #star
+//    | left=expression STAR_DOT right=expression          #starf
+//    | left=expression SLASH right=expression             #slash
+//    | left=expression SLASH_DOT right=expression         #slashf
+//    | left=expression PERCENT right=expression           #percent
+//    | left=expression ANDAND right=expression            #and
+//    | left=expression BARBAR right=expression            #or
+
+dataCtorArgument ::= (label COLON)? typeBase
+dataCtorArguments ::= PAR_OPEN (dataCtorArgument (COMMA dataCtorArgument)* (COMMA)?)? PAR_CLOSE
+dataConstructor ::= ctorName (dataCtorArguments)?
+//data_constructors: (data_constructor)+;
+
+typeDefinition ::= (visibilityModifier)? (opacityModifier)? TYPE_KEYWORD typeName CURLY_OPEN dataConstructor+ CURLY_CLOSE
+typeAlias ::= (visibilityModifier)? (opacityModifier)? TYPE_KEYWORD typeName EQ type
+
+//func_attribute_arg: STRING | LOWERCASE_IDENT;
+//func_attribute_args: func_attribute_arg (COMMA func_attribute_arg)*;
+//func_attribute_generic: AT LOWERCASE_IDENT LEFT_BRACE func_attribute_args RIGHT_BRACE;
+funcAttrDeprecated ::= AT 'deprecated' PAR_OPEN string? PAR_CLOSE
+funcAttrExternal ::= AT 'external' PAR_OPEN LOWERCASE_IDENT COMMA string COMMA string PAR_CLOSE
+funcAttr ::= funcAttrDeprecated | funcAttrExternal // no generic attr for now?
+
+///// Aliases (maybe not needed by why not have them for now and we can delete later
+// any_ident:  LOWERCASE_IDENT | CAPITALIZED_IDENT | IGNORED_IDENT;
+identifier ::= LOWERCASE_IDENT
+ctorName ::= CAPITALIZED_IDENT
+typeIdentifier ::= CAPITALIZED_IDENT
+discard ::= IGNORED_IDENT
+label ::= LOWERCASE_IDENT
+typeParameter ::= LOWERCASE_IDENT
+typeVar ::= LOWERCASE_IDENT
+typeHole ::= LOWERCASE_IDENT
+hole ::= IGNORED_IDENT
+discardParam ::= discard
+nameParam ::= identifier
+labeledNameParam ::= label identifier
+labeledDiscardParam ::= label discard
+remoteCtorName ::= identifier DOT ctorName
+remoteTypeIdentifier ::= identifier DOT typeIdentifier
+visibilityModifier ::= PUB_KEYWORD
+opacityModifier ::= OPAQUE_KEYWORD
+boolean ::= TRUE_ATOM | FALSE_ATOM
+string ::= STRING_TOKEN

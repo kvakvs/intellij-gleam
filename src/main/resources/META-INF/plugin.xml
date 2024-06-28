@@ -21,10 +21,10 @@
                   extensions="gleam"
                   fieldName="INSTANCE"/>
 
-        <lang.parserDefinition language="Gleam" implementationClass="se.clau.gleam.lang.core.parser.GleamParserDefinition"/>
+        <lang.parserDefinition language="Gleam" implementationClass="se.clau.gleam.lang.parser.GleamParserDefinition"/>
 
         <lang.syntaxHighlighter language="Gleam"
-                                implementationClass="se.clau.gleam.ide.highlight.GleamHighlighter"/>
+                                implementationClass="se.clau.gleam.ide.highlight.GleamSyntaxHighlighter"/>
 
         <lang.foldingBuilder language="Gleam"
                              implementationClass="se.clau.gleam.ide.GleamFoldingBuilder" />

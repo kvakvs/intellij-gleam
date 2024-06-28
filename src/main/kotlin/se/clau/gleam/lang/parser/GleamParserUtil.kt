@@ -1,4 +1,4 @@
-package se.clau.gleam.lang.core.parser
+package se.clau.gleam.lang.parser
 
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.lang.*

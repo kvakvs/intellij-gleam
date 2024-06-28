@@ -5,7 +5,7 @@ package se.clau.gleam
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.PsiErrorElementUtil
-import se.clau.gleam.lang.core.psi.GleamFile
+import se.clau.gleam.lang.psi.GleamFile
 
 //@TestDataPath("\$CONTENT_ROOT/src/test/testData")
 class FloatTest : BaseGleamTestCase() {

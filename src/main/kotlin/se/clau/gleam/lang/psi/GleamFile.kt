@@ -1,4 +1,4 @@
-package se.clau.gleam.lang.core.psi
+package se.clau.gleam.lang.psi
 
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType

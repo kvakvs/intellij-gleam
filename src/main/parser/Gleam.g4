@@ -173,31 +173,39 @@ expressionUnit
     | callOrAccess
     | literalExpression;
 
+//expression
+//    : expressionUnit #unit
+//    | left=expression binOp right=expression;
+//// binary operations (taking left and right operands)
+//binOp: EQEQ | NEQ | LESS | LESS_EQUAL | LESS_DOT | LESS_EQUAL_DOT | GREATER | GREATER_EQUAL | GREATER_DOT
+//       | GREATER_EQUAL_DOT | LT_GT | PIPE | PLUS | PLUS_DOT | MINUS | MINUS_DOT | STAR | STAR_DOT | SLASH
+//       | SLASH_DOT | PERCENT | ANDAND | BARBAR;
+
 expression
-    : expressionUnit #unit
-    | left=expression EQEQ right=expression #eq
-    | left=expression NEQ right=expression #neq
-    | left=expression LESS right=expression #lt
-    | left=expression LESS_EQUAL right=expression #lte
-    | left=expression LESS_DOT right=expression #ltf
-    | left=expression LESS_EQUAL_DOT right=expression #ltef
-    | left=expression GREATER right=expression #gt
-    | left=expression GREATER_EQUAL right=expression #gte
-    | left=expression GREATER_DOT right=expression #gtf
+    : expressionUnit                                     #unit
+    | left=expression EQEQ right=expression              #eq
+    | left=expression NEQ right=expression               #neq
+    | left=expression LESS right=expression              #lt
+    | left=expression LESS_EQUAL right=expression        #lte
+    | left=expression LESS_DOT right=expression          #ltf
+    | left=expression LESS_EQUAL_DOT right=expression    #ltef
+    | left=expression GREATER right=expression           #gt
+    | left=expression GREATER_EQUAL right=expression     #gte
+    | left=expression GREATER_DOT right=expression       #gtf
     | left=expression GREATER_EQUAL_DOT right=expression #gtef
-    | left=expression LT_GT right=expression #ltgt
-    | left=expression PIPE right=expression #pipe
-    | left=expression PLUS right=expression #plus
-    | left=expression PLUS_DOT right=expression #plusf
-    | left=expression MINUS right=expression #minus
-    | left=expression MINUS_DOT right=expression #minusf
-    | left=expression STAR right=expression #star
-    | left=expression STAR_DOT right=expression #starf
-    | left=expression SLASH right=expression #slash
-    | left=expression SLASH_DOT right=expression #slashf
-    | left=expression PERCENT right=expression #percent
-    | left=expression ANDAND right=expression #and
-    | left=expression BARBAR right=expression #or ;
+    | left=expression LT_GT right=expression             #ltgt
+    | left=expression PIPE right=expression              #pipe
+    | left=expression PLUS right=expression              #plus
+    | left=expression PLUS_DOT right=expression          #plusf
+    | left=expression MINUS right=expression             #minus
+    | left=expression MINUS_DOT right=expression         #minusf
+    | left=expression STAR right=expression              #star
+    | left=expression STAR_DOT right=expression          #starf
+    | left=expression SLASH right=expression             #slash
+    | left=expression SLASH_DOT right=expression         #slashf
+    | left=expression PERCENT right=expression           #percent
+    | left=expression ANDAND right=expression            #and
+    | left=expression BARBAR right=expression            #or;
 
 dataCtorArgument: (label COLON)? typeBase;
 dataCtorArguments: PAR_OPEN (dataCtorArgument (COMMA dataCtorArgument)* (COMMA)?)? PAR_CLOSE;
@@ -355,7 +363,6 @@ fragment ESC_CODEPOINT: BACKSLASH 'u{' HEX_DIGIT+ '}' ;
 STRING:             '"' (ESC_CHAR | ESC_CODEPOINT | ~["\\])* '"' ;
 
 WHITESPACE: [ \t\n\r]+ -> channel(HIDDEN) ;
-//CRLF: [\r?\n]+ -> channel(HIDDEN) ;
 
 /* "catch all" rule for any char not matched in a token rule of your grammar. Lexers in Intellij must return all
    tokens good and bad. There must be a token to cover all characters, which makes sense, for an IDE. The parser,

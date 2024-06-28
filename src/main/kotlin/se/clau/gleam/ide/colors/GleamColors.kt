@@ -8,6 +8,8 @@ import java.util.function.Supplier
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors as Default
 
 enum class GleamColor(humanName: Supplier<@AttributeDescriptor String>, default: TextAttributesKey? = null) {
+    BAD_CHARACTER(GleamBundle.messagePointer("settings.gleam.color.badCharacter"), Default.INVALID_STRING_ESCAPE),
+
     COMMENT(GleamBundle.messagePointer("settings.gleam.color.comment.normal"), Default.LINE_COMMENT),
     DOC_COMMENT(GleamBundle.messagePointer("settings.gleam.color.comment.doc"), Default.DOC_COMMENT),
     MODULE_COMMENT(GleamBundle.messagePointer("settings.gleam.color.comment.mod_doc"), Default.LINE_COMMENT),
@@ -34,7 +36,7 @@ enum class GleamColor(humanName: Supplier<@AttributeDescriptor String>, default:
     OPERATION_SIGN(GleamBundle.messagePointer("settings.gleam.color.operation_sign"), Default.OPERATION_SIGN)
     ;
 
-    val textAttributesKey = TextAttributesKey.createTextAttributesKey("run.gleam.$name", default)
+    val textAttributesKey = TextAttributesKey.createTextAttributesKey("se.clau.gleam.$name", default)
     val attributesDescriptor = AttributesDescriptor(humanName, textAttributesKey)
 //    val testSeverity: HighlightSeverity = HighlightSeverity(name, HighlightSeverity.INFORMATION.myVal)
 }
