@@ -2,6 +2,8 @@
   parserClass="se.clau.gleam.lang.parser.GleamParser"
 
   extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+  extends(".*Expr")=expression
+  consumeTokenMethod(".*_expr|expression")="consumeTokenFast"
 
   psiClassPrefix="Gleam"
   psiImplClassSuffix="Impl"
@@ -77,6 +79,7 @@
     L_ARROW = "<-"
     DOT_DOT = ".."
 
+    FLOAT   = "floating point literal"
     BIN_INT = "binary integer literal"
     OCT_INT = "octal integer literal"
     DEC_INT = "decimal integer literal"
@@ -98,8 +101,9 @@ sourceFileRoot ::= sourceFileElement*
 private sourceFileElement ::= importLine
     | constantDefinition
     | externalType
-    | (funcAttr* function)
-    | expressionTryList1 | targetGroup
+    | funcAttr
+    | function
+    | expressionOrTry+ | targetGroup
     | typeDefinition
     | typeAlias
 
@@ -131,7 +135,6 @@ litRecordArgument ::= (label COLON)? literal
 litRecordArguments ::= PAR_OPEN (litRecordArgument (COMMA (litRecordArgument)* (COMMA)?))? PAR_CLOSE
 literalRecord ::= (ctorName | remoteCtorName) (litRecordArguments)?
 
-integer ::= BIN_INT | OCT_INT | DEC_INT | HEX_INT
 bitstringSegmentOptionSize ::= identifier PAR_OPEN integer PAR_CLOSE
 // 'binary' | 'bytes' | 'int' | 'float' | 'bit_string' | 'bits' | 'utf8' | 'utf16' | 'utf32' | 'utf8_codepoint' | 'utf16_codepoint' | 'utf32_codepoint' | 'signed' | 'unsigned' | 'big' | 'little' | 'native' | 'unit' '(' INTEGER ')';
 // enforce value for identifier for these surrounding 2 rules with an intelliJ annotator
@@ -145,7 +148,7 @@ typeLiteral ::= (typeIdentifier | remoteTypeIdentifier) (literalTypeArguments)?
 typeLiteralSpecial ::= typeHole | literalTupleType | literalFuncType | typeLiteral
 constantTypeAnnotation ::= COLON typeLiteral
 constantFieldAccess ::= identifier DOT label
-literal ::= literalTuple | literalList | literalBitstring | literalRecord | identifier | constantFieldAccess | literalExpression
+literal ::= literalTuple | literalList | literalBitstring | literalRecord | identifier | constantFieldAccess | literalExpr
 constantDefinition ::= (visibilityModifier)? CONST_KEYWORD LOWERCASE_IDENT (constantTypeAnnotation)? EQ literal
 
 typeParameters ::= PAR_OPEN (typeParameter (COMMA typeParameter)* (COMMA)?)? PAR_CLOSE
@@ -173,8 +176,10 @@ funcParameterArgs ::= labeledDiscardParam | discardParam | labeledNameParam | na
 funcParameter ::= funcParameterArgs (typeAnnotation)?
 funcParameters ::= PAR_OPEN (funcParameter (COMMA funcParameter)* (COMMA)?)? PAR_CLOSE
 // A function can contain either a single expression after -> or a { block of expressions }.
-// External functions are functions too.
-funcBody ::= (CURLY_OPEN expressionTryList0 CURLY_CLOSE) | expression
+// External functions are 'function' too.
+private funcBodyRecoverWhile ::= !(CURLY_CLOSE | <<eof>>)
+private funcBodyBlock ::= CURLY_OPEN expressionOrTry* CURLY_CLOSE { pin=1 recoverWhile=funcBodyRecoverWhile }
+funcBody ::= funcBodyBlock | expressionOrTry
 function ::= (visibilityModifier)? FN_KEYWORD identifier funcParameters (R_ARROW typeBase)? funcBody?
 
 listPatternTail ::= DOT_DOT (identifier | discard)?
@@ -188,18 +193,17 @@ patternSpread ::= (DOT_DOT (COMMA)?)
 recordPatternArgument ::= (label COLON)? pattern
 recordPatternArguments ::= PAR_OPEN (recordPatternArgument (COMMA recordPatternArgument)* (COMMA)?)? (patternSpread)? PAR_CLOSE
 recordPattern ::= (ctorName | remoteCtorName) (recordPatternArguments)?
-pattern ::= (identifier | discard | recordPattern | literalExpression | tuplePattern | bitstringPattern | listPattern) (AS_KEYWORD identifier)?
+pattern ::= (identifier | discard | recordPattern | literalExpr | tuplePattern | bitstringPattern | listPattern) (AS_KEYWORD identifier)?
 
 try ::= TRY_KEYWORD pattern (typeAnnotation)? EQ expression
-expressionTryList1 ::= (expression | try)+
-expressionTryList0 ::= (expression | try)*
+private expressionOrTry ::= expression | try
 
 recordArgument ::= (label ':')? (hole | expression)
 recordArgumentList ::= PAR_OPEN (recordArgument (COMMA recordArgument)* (COMMA)?)? PAR_CLOSE
 record ::= (ctorName | remoteCtorName) (recordArgumentList)?
 
-expressionBitstringSegment ::= expressionUnit (COLON bitstringSegmentOptions)?
-expressionBitstring ::= LTLT (expressionBitstringSegment (COMMA expressionBitstringSegment)* (COMMA)?)? GTGT
+expressionBitstringSegment ::= unitExpr (COLON bitstringSegmentOptions)?
+bitstringExpr ::= LTLT (expressionBitstringSegment (COMMA expressionBitstringSegment)* (COMMA)?)? GTGT
 
 todo ::= TODO_KEYWORD (PAR_OPEN string PAR_CLOSE)?
 tuple ::= HASH PAR_OPEN (expression (COMMA expression)* (COMMA)?)? PAR_CLOSE
@@ -213,7 +217,8 @@ anonFuncParameter ::= anonFuncParameterArgs (typeAnnotation)?
 anonFuncParameters ::= PAR_OPEN (anonFuncParameter (COMMA anonFuncParameter)* (COMMA)?)? PAR_CLOSE
 anonFunc ::= FN_KEYWORD anonFuncParameters (R_ARROW type)? funcBody
 
-expressionGroup ::= CURLY_OPEN expressionTryList1 CURLY_CLOSE
+// A { block of expressions } where the last is the resulting value
+groupExpr ::= CURLY_OPEN expressionOrTry+ CURLY_CLOSE
 
 caseClauseTupleAccess ::= identifier DOT integer
 caseClauseGuardUnit ::= identifier | caseClauseTupleAccess | CURLY_OPEN caseClauseGuardExpression CURLY_CLOSE | literal
@@ -226,51 +231,100 @@ caseClausePattern ::= pattern (COMMA pattern)*  (COMMA)?
 caseClausePatterns ::= caseClausePattern (BAR caseClausePattern)* (BAR)?
 caseClause ::= caseClausePatterns (caseClauseGuard)? R_ARROW expression
 //caseClauses: (caseClause)+;
-caseSubjects ::= expressionTryList1
+caseSubjects ::= expressionOrTry+
 case ::= CASE_KEYWORD caseSubjects CURLY_OPEN caseClause+ CURLY_CLOSE
 
 useArgs ::= identifier | identifier COMMA useArgs
 use ::= USE_KEYWORD (useArgs)? L_ARROW expression
 
 assignment ::= pattern (typeAnnotation)? EQ expression
-let ::= LET_KEYWORD assignment
+letExpr ::= LET_KEYWORD assignment
 assert ::= ASSERT_KEYWORD assignment
-negation ::= BANG expressionUnit
+negationExpr ::= BANG unitExpr
 
 recordUpdateArgument ::= label COLON expression
 recordUpdateArguments ::= recordUpdateArgument (COMMA recordUpdateArgument)* (COMMA)?
-recordUpdate ::= (ctorName | remoteCtorName) PAR_OPEN DOT_DOT expression COMMA recordUpdateArguments PAR_CLOSE
+recordUpdateExpr ::= (ctorName | remoteCtorName) PAR_OPEN DOT_DOT expression COMMA recordUpdateArguments PAR_CLOSE
 
 callOrAccessOptions ::= recordArgumentList | (DOT label) | (DOT integer)
 // this deviates from the treesitter spec - it is function_call + field_access + tuple_access all in one rule to avoid indirect left recursion
-callOrAccess ::= callOrAccess callOrAccessOptions
-     | case callOrAccessOptions
+private callOrAccessExpr ::= // callOrAccessExpr callOrAccessOptions |
+     case callOrAccessOptions
      | identifier callOrAccessOptions
-     | expressionGroup callOrAccessOptions
+     | groupExpr callOrAccessOptions
      | record DOT label
-     | recordUpdate DOT label
+     | recordUpdateExpr DOT label
      | tuple DOT integer
      | anonFunc recordArgumentList
 
-literalExpression ::= string | FLOAT | integer | boolean
-expressionUnit ::= record
+literalExpr ::= string | FLOAT | integer | boolean
+private unitExpr ::= record
     | anonFunc
     | identifier
     | todo
     | tuple
     | list
-    | expressionBitstring
-    | expressionGroup
+    | bitstringExpr
+    | groupExpr
     | case
-    | let
+    | letExpr
     | use
     | assert
-    | negation
-    | recordUpdate
-    | callOrAccess
-    | literalExpression
+    | negationExpr
+    | recordUpdateExpr
+    | callOrAccessExpr
+    | literalExpr
 
-//expression ::=
+private expressionRecoverWhile ::= !(SQUARE_CLOSE | CURLY_CLOSE | PAR_CLOSE | COMMA |  SEMICOLON)
+
+expression ::= eqExpr | neqExpr | ltExpr | lteqExpr | gtExpr | gteqExpr | expression1
+private expression1 ::= ltFloatExpr | lteqFloatExpr | gtFloatExpr | gteqFloatExpr | expression2
+private expression2 ::= unitExpr
+//    | ltFloatExpr
+//    | lteqFloatExpr
+//    | gtFloatExpr
+//    | gteqFloatExpr
+//    | stringConcatExpr
+//    | pipeExpr
+//    | plusExpr
+//    | plusFloatExpr
+//    | minusExpr
+//    | minusFloaExpr
+//    | multExpr
+//    | multFloatExpr
+//    | divExpr
+//    | divFloatExpr
+//    | modExpr
+//    | logicalAndExpr
+//    | logicalOrExpr
+    { recoverWhile = expressionRecoverWhile }
+
+eqExpr ::= expression1 EQEQ expression
+neqExpr ::= expression1 NEQ expression
+ltExpr ::= expression1 LESS expression
+lteqExpr ::= expression1 LESS_EQUAL expression
+gtExpr ::= expression1 GREATER expression
+gteqExpr ::= expression1 GREATER_EQUAL expression
+
+ltFloatExpr ::= expression2 LESS_DOT expression
+lteqFloatExpr ::= expression2 LESS_EQUAL_DOT expression
+gtFloatExpr ::= expression2 GREATER_DOT expression
+gteqFloatExpr ::= expression2 GREATER_EQUAL_DOT expression
+
+stringConcatExpr ::= expression LT_GT expression
+pipeExpr ::= expression BAR_GT expression
+plusExpr ::= expression PLUS expression
+plusFloatExpr ::= expression PLUS_DOT expression
+minusExpr ::= expression MINUS expression
+minusFloaExpr ::= expression MINUS_DOT expression
+multExpr ::= expression STAR expression
+multFloatExpr ::= expression STAR_DOT expression
+divExpr ::= expression SLASH expression
+divFloatExpr ::= expression SLASH_DOT expression
+modExpr ::= expression PERCENT expression
+logicalAndExpr ::= expression ANDAND expression
+logicalOrExpr ::= expression BARBAR expression
+
 //    : expressionUnit #unit
 //    | left=expression binOp right=expression;
 //// binary operations (taking left and right operands)
@@ -320,22 +374,23 @@ funcAttr ::= funcAttrDeprecated | funcAttrExternal // no generic attr for now?
 
 ///// Aliases (maybe not needed by why not have them for now and we can delete later
 // any_ident:  LOWERCASE_IDENT | CAPITALIZED_IDENT | IGNORED_IDENT;
-identifier ::= LOWERCASE_IDENT
+boolean ::= TRUE_ATOM | FALSE_ATOM
 ctorName ::= CAPITALIZED_IDENT
-typeIdentifier ::= CAPITALIZED_IDENT
 discard ::= IGNORED_IDENT
-label ::= LOWERCASE_IDENT
-typeParameter ::= LOWERCASE_IDENT
-typeVar ::= LOWERCASE_IDENT
-typeHole ::= LOWERCASE_IDENT
-hole ::= IGNORED_IDENT
 discardParam ::= discard
-nameParam ::= identifier
-labeledNameParam ::= label identifier
+hole ::= IGNORED_IDENT
+identifier ::= LOWERCASE_IDENT
+integer ::= BIN_INT | OCT_INT | DEC_INT | HEX_INT
+label ::= LOWERCASE_IDENT
 labeledDiscardParam ::= label discard
+labeledNameParam ::= label identifier
+nameParam ::= identifier
+opacityModifier ::= OPAQUE_KEYWORD
 remoteCtorName ::= identifier DOT ctorName
 remoteTypeIdentifier ::= identifier DOT typeIdentifier
-visibilityModifier ::= PUB_KEYWORD
-opacityModifier ::= OPAQUE_KEYWORD
-boolean ::= TRUE_ATOM | FALSE_ATOM
 string ::= STRING_TOKEN
+typeHole ::= LOWERCASE_IDENT
+typeIdentifier ::= CAPITALIZED_IDENT
+typeParameter ::= LOWERCASE_IDENT
+typeVar ::= LOWERCASE_IDENT
+visibilityModifier ::= PUB_KEYWORD

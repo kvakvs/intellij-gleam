@@ -8,7 +8,6 @@ import com.intellij.psi.tree.IElementType
 import se.clau.gleam.ide.colors.GleamColor
 import se.clau.gleam.lang.parser.GleamLexerAdapter
 import se.clau.gleam.lang.parser.GleamStringToken
-import se.clau.gleam.lang.psi.GleamString
 import se.clau.gleam.lang.psi.GleamTypes
 
 class GleamSyntaxHighlighter : SyntaxHighlighterBase() {
@@ -17,20 +16,18 @@ class GleamSyntaxHighlighter : SyntaxHighlighterBase() {
     override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> {
         return when (tokenType) {
             TokenType.BAD_CHARACTER -> TextAttrKeys.BAD_CHAR_KEYS
-            GleamTypes.COMMENT -> TextAttrKeys.COMMENT_KEYS
+            GleamTypes.COMMENT, GleamTypes.DOC_COMMENT, GleamTypes.MODULE_COMMENT -> TextAttrKeys.COMMENT_KEYS
             is GleamStringToken -> TextAttrKeys.STRING_KEYS
+            GleamTypes.BIN_INT, GleamTypes.OCT_INT, GleamTypes.DEC_INT, GleamTypes.HEX_INT -> TextAttrKeys.INTEGER_KEYS
             else -> TextAttrKeys.EMPTY_KEYS
         }
     }
 
     object TextAttrKeys {
         val BAD_CHAR_KEYS = arrayOf(GleamColor.BAD_CHARACTER.textAttributesKey)
-
-        //private val SEPARATOR_KEYS = arrayOf(SEPARATOR)
-//private val KEY_KEYS = arrayOf(KEY)
-//private val VALUE_KEYS: Array<TextAttributesKey> = arrayOf<TextAttributesKey>(VALUE)
         val COMMENT_KEYS = arrayOf(GleamColor.COMMENT.textAttributesKey)
         val STRING_KEYS = arrayOf(GleamColor.STRING.textAttributesKey)
+        val INTEGER_KEYS = arrayOf(GleamColor.NUMBER.textAttributesKey)
         val EMPTY_KEYS: Array<TextAttributesKey> = emptyArray()
     }
 }

@@ -137,6 +137,7 @@ DQUOT_STRING_BODY = [^\\\"]+
     // Longest match first, then shorter matches
     {MODULE_COMMENT}        { return GleamTypes.MODULE_COMMENT; }
     {DOC_COMMENT}           { return GleamTypes.DOC_COMMENT; }
+    // Comments can occur almost anywhere, we remove them in tokenizer
     {COMMENT}               { /* return GleamTypes.COMMENT; */ }
 
     {LOWERCASE_IDENT}       { return GleamTypes.LOWERCASE_IDENT; }

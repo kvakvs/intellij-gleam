@@ -14,7 +14,6 @@ import com.intellij.psi.tree.TokenSet
 import se.clau.gleam.lang.GleamFlexLexer
 import se.clau.gleam.lang.GleamLanguage
 import se.clau.gleam.lang.psi.GleamFile
-import se.clau.gleam.lang.psi.GleamPsiBuilder
 import se.clau.gleam.lang.psi.GleamTypes
 import java.io.Reader
 
