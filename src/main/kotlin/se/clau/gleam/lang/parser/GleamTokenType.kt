@@ -4,7 +4,7 @@ import com.intellij.psi.tree.IElementType
 import org.jetbrains.annotations.NonNls
 import se.clau.gleam.lang.GleamLanguage
 
-class GleamStringToken(val content: String): GleamTokenType(content)
+class GleamStringToken(content: String): GleamTokenType(content)
 
 /**
  * Additional tokens, used in the lexer

@@ -7,6 +7,8 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import se.clau.gleam.ide.colors.GleamColor
 import se.clau.gleam.lang.parser.GleamLexerAdapter
+import se.clau.gleam.lang.parser.GleamStringToken
+import se.clau.gleam.lang.psi.GleamString
 import se.clau.gleam.lang.psi.GleamTypes
 
 class GleamSyntaxHighlighter : SyntaxHighlighterBase() {
@@ -16,6 +18,7 @@ class GleamSyntaxHighlighter : SyntaxHighlighterBase() {
         return when (tokenType) {
             TokenType.BAD_CHARACTER -> TextAttrKeys.BAD_CHAR_KEYS
             GleamTypes.COMMENT -> TextAttrKeys.COMMENT_KEYS
+            is GleamStringToken -> TextAttrKeys.STRING_KEYS
             else -> TextAttrKeys.EMPTY_KEYS
         }
     }
@@ -27,6 +30,7 @@ class GleamSyntaxHighlighter : SyntaxHighlighterBase() {
 //private val KEY_KEYS = arrayOf(KEY)
 //private val VALUE_KEYS: Array<TextAttributesKey> = arrayOf<TextAttributesKey>(VALUE)
         val COMMENT_KEYS = arrayOf(GleamColor.COMMENT.textAttributesKey)
+        val STRING_KEYS = arrayOf(GleamColor.STRING.textAttributesKey)
         val EMPTY_KEYS: Array<TextAttributesKey> = emptyArray()
     }
 }

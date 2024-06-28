@@ -72,6 +72,7 @@ tasks {
                 //srcDir(generateGrammarSource)
                 srcDir("src/main/java")
                 srcDir("src/main/gen")
+                //TODO mark generated("src/main/gen")
             }
         }
     }

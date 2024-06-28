@@ -7,7 +7,7 @@
   psiImplClassSuffix="Impl"
   psiPackage="se.clau.gleam.lang.psi"
   psiImplPackage="se.clau.gleam.lang.impl"
-  psiImplUtilClass="se.clau.gleam.lang.impl.GleamPsiImplUtil"
+  psiImplUtilClass="se.clau.gleam.lang.psi.GleamPsiImplUtil"
 
   elementTypeHolderClass="se.clau.gleam.lang.psi.GleamTypes"
   elementTypeClass="se.clau.gleam.lang.parser.GleamElementType"
@@ -15,10 +15,10 @@
 
   tokens = [
     ASSERT_KEYWORD = "'assert' keyword"
-    LET_KEYWORD = "'let' keyword"
-    TRY_KEYWORD = "'try' keyword"
-    TYPE_KEYWORD = "'type' keyword"
-    USE_KEYWORD = "'use' keyword"
+    LET_KEYWORD    = "'let' keyword"
+    TRY_KEYWORD    = "'try' keyword"
+    TYPE_KEYWORD   = "'type' keyword"
+    USE_KEYWORD    = "'use' keyword"
     AS_KEYWORD     = "'as' keyword"
     CASE_KEYWORD   = "'case' keyword"
     CONST_KEYWORD  = "'const' keyword"
@@ -28,8 +28,9 @@
     OPAQUE_KEYWORD = "'opaque' keyword"
     PUB_KEYWORD    = "'pub' keyword"
     TODO_KEYWORD   = "'todo' keyword"
-    TRUE_KEYWORD   = "'true' atom"
-    FALSE_KEYWORD  = "'false' atom"
+    TRUE_ATOM      = "'True' atom"
+    FALSE_ATOM     = "'False' atom"
+    NIL_ATOM       = "'Nil' atom"
 
     PAR_OPEN = "opening parenthesis"
     PAR_CLOSE = "closing parenthesis"
@@ -70,28 +71,35 @@
     ANDAND = "&&"
     LTLT = "<<"
     GTGT = ">>"
-    PIPE = "|>"
+    BAR_GT = "|>"
     DOT = "."
     R_ARROW = "->"
     L_ARROW = "<-"
     DOT_DOT = ".."
 
-    LOWERCASE_IDENT = "lowercase identifier"
-    CAPITALIZED_IDENT = "capitalized identifier"
-    IGNORED_IDENT   = "identifier starting with an underscore"
-    COMMENT = "comment //, doc comment /// or module level comment ////"
-    STRING_TOKEN = "string"
-    WHITESPACE = "whitespace"
+    BIN_INT = "binary integer literal"
+    OCT_INT = "octal integer literal"
+    DEC_INT = "decimal integer literal"
+    HEX_INT = "hexadecimal integer literal"
+
+    LOWERCASE_IDENT     = "lowercase identifier"
+    CAPITALIZED_IDENT   = "capitalized identifier"
+    IGNORED_IDENT       = "identifier starting with an underscore"
+    COMMENT             = "comment //"
+    DOC_COMMENT         = "doc comment ///"
+    MODULE_COMMENT      = "module level comment ////"
+    STRING_TOKEN        = "string"
   ]
 }
 
 // Root, parsing begins from here
-sourceFileRoot ::= (sourceFileElement | expressionTryList1 | targetGroup)* <<eof>>
+sourceFileRoot ::= sourceFileElement*
 
 private sourceFileElement ::= importLine
     | constantDefinition
     | externalType
     | (funcAttr* function)
+    | expressionTryList1 | targetGroup
     | typeDefinition
     | typeAlias
 
@@ -123,7 +131,7 @@ litRecordArgument ::= (label COLON)? literal
 litRecordArguments ::= PAR_OPEN (litRecordArgument (COMMA (litRecordArgument)* (COMMA)?))? PAR_CLOSE
 literalRecord ::= (ctorName | remoteCtorName) (litRecordArguments)?
 
-integer ::= INT
+integer ::= BIN_INT | OCT_INT | DEC_INT | HEX_INT
 bitstringSegmentOptionSize ::= identifier PAR_OPEN integer PAR_CLOSE
 // 'binary' | 'bytes' | 'int' | 'float' | 'bit_string' | 'bits' | 'utf8' | 'utf16' | 'utf32' | 'utf8_codepoint' | 'utf16_codepoint' | 'utf32_codepoint' | 'signed' | 'unsigned' | 'big' | 'little' | 'native' | 'unit' '(' INTEGER ')';
 // enforce value for identifier for these surrounding 2 rules with an intelliJ annotator
@@ -156,7 +164,7 @@ typeArguments ::= PAR_OPEN (typeArgument (COMMA typeArgument)* (COMMA)?)? PAR_CL
 type ::= (typeIdentifier | remoteTypeIdentifier) (typeArguments)?
 
 // FIX ME: Deprecated syntax? use @external(lang, mod, fn)? https://exercism.org/tracks/gleam/concepts/external-functions
-//external_function_body: STRING STRING;
+//external_function_body: STRING_TOKEN STRING_TOKEN;
 //external_function_parameter: (identifier COLON)? type_base;
 //external_function_parameters: LEFT_PAREN (external_function_parameter (COMMA external_function_parameter)* (COMMA)?)? RIGHT_PAREN;
 //external_function: (visibility_modifier)? EXTERNAL FN_KEYWORD identifier external_function_parameters R_ARROW type_base EQ external_function_body;
@@ -262,12 +270,12 @@ expressionUnit ::= record
     | callOrAccess
     | literalExpression
 
-expression ::=
+//expression ::=
 //    : expressionUnit #unit
 //    | left=expression binOp right=expression;
 //// binary operations (taking left and right operands)
 //binOp: EQEQ | NEQ | LESS | LESS_EQUAL | LESS_DOT | LESS_EQUAL_DOT | GREATER | GREATER_EQUAL | GREATER_DOT
-//       | GREATER_EQUAL_DOT | LT_GT | PIPE | PLUS | PLUS_DOT | MINUS | MINUS_DOT | STAR | STAR_DOT | SLASH
+//       | GREATER_EQUAL_DOT | LT_GT | BAR_GT | PLUS | PLUS_DOT | MINUS | MINUS_DOT | STAR | STAR_DOT | SLASH
 //       | SLASH_DOT | PERCENT | ANDAND | BARBAR;
 
 //expression ::= expressionUnit                            #unit
@@ -282,7 +290,7 @@ expression ::=
 //    | left=expression GREATER_DOT right=expression       #gtf
 //    | left=expression GREATER_EQUAL_DOT right=expression #gtef
 //    | left=expression LT_GT right=expression             #ltgt
-//    | left=expression PIPE right=expression              #pipe
+//    | left=expression BAR_GT right=expression              #pipe
 //    | left=expression PLUS right=expression              #plus
 //    | left=expression PLUS_DOT right=expression          #plusf
 //    | left=expression MINUS right=expression             #minus
@@ -303,7 +311,7 @@ dataConstructor ::= ctorName (dataCtorArguments)?
 typeDefinition ::= (visibilityModifier)? (opacityModifier)? TYPE_KEYWORD typeName CURLY_OPEN dataConstructor+ CURLY_CLOSE
 typeAlias ::= (visibilityModifier)? (opacityModifier)? TYPE_KEYWORD typeName EQ type
 
-//func_attribute_arg: STRING | LOWERCASE_IDENT;
+//func_attribute_arg: STRING_TOKEN | LOWERCASE_IDENT;
 //func_attribute_args: func_attribute_arg (COMMA func_attribute_arg)*;
 //func_attribute_generic: AT LOWERCASE_IDENT LEFT_BRACE func_attribute_args RIGHT_BRACE;
 funcAttrDeprecated ::= AT 'deprecated' PAR_OPEN string? PAR_CLOSE

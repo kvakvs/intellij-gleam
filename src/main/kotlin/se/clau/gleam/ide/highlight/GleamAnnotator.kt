@@ -27,40 +27,41 @@ class GleamAnnotator : ExternalAnnotator<PsiFile, List<GleamAnnotator.IAnnotatio
     }
 
     fun mark(root: PsiElement, xpath: String, annotations: MutableList<IAnnotation>, color: GleamColor) {
-        XPath.findAll(GleamLanguage, root, xpath)
-            .forEach { annotations.add(ColorAnnotation(it.textRange, color)) }
+        //XPath.findAll(GleamLanguage, root, xpath)
+        //    .forEach { annotations.add(ColorAnnotation(it.textRange, color)) }
     }
 
     override fun doAnnotate(file: PsiFile): List<IAnnotation> {
-        val annotations: MutableList<IAnnotation> = ArrayList()
-
-        // Local Variables
-        mark(file, "//function//assignment/pattern/identifier", annotations, GleamColor.LOCAL_VARIABLE)
-
-        // Find all functions...
-        XPath.findAll(GleamLanguage, file, "//function")
-            .forEach { func ->
-                // Labeled function parameters
-                mark(func, "/function//funcParameters//label", annotations, GleamColor.FUNCTION_PARAM_LABEL)
-                //mark(func, "/function//labeledDiscardParam/label", annotations, GleamColor.FUNCTION_PARAM_LABEL)
-                mark(func, "/identifier", annotations, GleamColor.FUNCTION_DECLARATION)
-                mark(func, "//funcParameters//identifier", annotations, GleamColor.FUNCTION_PARAM)
-                mark(func, "//funcBody//identifier", annotations, GleamColor.LOCAL_VARIABLE) // too broad
-            }
-
-        // Type Identifiers
-        mark(file, "//typeIdentifier", annotations, GleamColor.TYPE_IDENTIFIER)
-
-        // Constructors
-        XPath.findAll(GleamLanguage, file, "//record")
-            .forEach { record ->
-                mark(record, "//ctorName", annotations, GleamColor.TYPE_IDENTIFIER)
-                mark(record, "//recordArgument/label", annotations, GleamColor.FUNCTION_PARAM)
-            }
-
-        // TODO error when function call on function not defined in file
-
-        return annotations
+        return emptyList()
+        //val annotations: MutableList<IAnnotation> = ArrayList()
+        //
+        //// Local Variables
+        //mark(file, "//function//assignment/pattern/identifier", annotations, GleamColor.LOCAL_VARIABLE)
+        //
+        //// Find all functions...
+        //XPath.findAll(GleamLanguage, file, "//function")
+        //    .forEach { func ->
+        //        // Labeled function parameters
+        //        mark(func, "/function//funcParameters//label", annotations, GleamColor.FUNCTION_PARAM_LABEL)
+        //        //mark(func, "/function//labeledDiscardParam/label", annotations, GleamColor.FUNCTION_PARAM_LABEL)
+        //        mark(func, "/identifier", annotations, GleamColor.FUNCTION_DECLARATION)
+        //        mark(func, "//funcParameters//identifier", annotations, GleamColor.FUNCTION_PARAM)
+        //        mark(func, "//funcBody//identifier", annotations, GleamColor.LOCAL_VARIABLE) // too broad
+        //    }
+        //
+        //// Type Identifiers
+        //mark(file, "//typeIdentifier", annotations, GleamColor.TYPE_IDENTIFIER)
+        //
+        //// Constructors
+        //XPath.findAll(GleamLanguage, file, "//record")
+        //    .forEach { record ->
+        //        mark(record, "//ctorName", annotations, GleamColor.TYPE_IDENTIFIER)
+        //        mark(record, "//recordArgument/label", annotations, GleamColor.FUNCTION_PARAM)
+        //    }
+        //
+        //// TODO error when function call on function not defined in file
+        //
+        //return annotations
     }
 
     override fun apply(file: PsiFile, annotationResult: List<IAnnotation>, holder: AnnotationHolder) {

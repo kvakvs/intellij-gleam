@@ -3,7 +3,7 @@ package se.clau.gleam.lang;
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
-import se.clau.gleam.lang.parser.GleamTokenType;
+import se.clau.gleam.lang.parser.GleamParserUtil;import se.clau.gleam.lang.parser.GleamTokenType;
 import se.clau.gleam.lang.psi.GleamTypes;
 
 %%
@@ -19,15 +19,18 @@ import se.clau.gleam.lang.psi.GleamTypes;
 %eof}
 
 %{
+    // While in string state, detected symbols belonging to a string are interpreted and collected here
     StringBuffer stringAccumulator = new StringBuffer();
 %}
 
-ANY_INPUT = [^]
+ANY_CHARACTER = [^]
+ANY_WHITESPACE = [ \t\r\n]
 
 // Extra
-COMMENT = "//" [^\r\n]*
-DOC_COMMENT = "///" [^\r\n]*
-MODULE_COMMENT = "////" [^\r\n]*
+ALL_TILL_EOL = [^\r\n]*
+COMMENT = "//" {ALL_TILL_EOL}
+DOC_COMMENT = "///" {ALL_TILL_EOL}
+MODULE_COMMENT = "////" {ALL_TILL_EOL}
 
 // Identifiers
 
@@ -44,45 +47,32 @@ DEC_DIGIT = [0-9]
 HEX_DIGIT = [0-9a-fA-F]
 
 // Lexer: Literals
-DEC_INT = DEC_DIGIT ('_'? DEC_DIGIT+) *
-BIN_INT = ('0b' | '0B') BIN_DIGIT ('_'? BIN_DIGIT+) *
-HEX_INT = ('0x' | '0X') HEX_DIGIT ('_'? HEX_DIGIT+) *
-OCT_INT = ('0o' | '0O') [0-7] ('_'? [0-7]+) *
-INT     = SIGN? (BIN_INT | OCT_INT | DEC_INT | HEX_INT) // order of ascending base 2, 8, 10, 16
+DEC_INT = {SIGN}? {DEC_DIGIT} ("_"? {DEC_DIGIT}+) *
+BIN_INT = {SIGN}? ("0b" | "0B") {BIN_DIGIT} ("_"? {BIN_DIGIT}+) *
+HEX_INT = {SIGN}? ("0x" | "0X") {HEX_DIGIT} ("_"? {HEX_DIGIT}+) *
+OCT_INT = {SIGN}? ("0o" | "0O") [0-7] ("_"? [0-7]+) *
+//INT     = {SIGN}? ({BIN_INT} | {OCT_INT} | {DEC_INT} | {HEX_INT}) // order of ascending base 2, 8, 10, 16
 
 // Lexer: Float
-FLOAT1          = DEC_INT '.' DEC_INT?   // 1.35, 1.35E-9, 0.3, -4.5, +1. 10_000.0
-FLOAT2          = '.' DEC_INT            // .3, -.4, .0_000_000_1
-FLOAT_EXPONENT  = [Ee] SIGN? DEC_INT
-FLOAT           = SIGN? (FLOAT1 | FLOAT2) FLOAT_EXPONENT?
+FLOAT1          = {DEC_INT} '.' {DEC_INT}?   // 1.35, 1.35E-9, 0.3, -4.5, +1. 10_000.0
+FLOAT2          = '.' {DEC_INT}            // .3, -.4, .0_000_000_1
+FLOAT_EXPONENT  = [Ee] {SIGN}? {DEC_INT}
+FLOAT           = {SIGN}? ({FLOAT1} | {FLOAT2}) {FLOAT_EXPONENT}?
 
 // Lexer: String
-BACKSLASH       = "\\"
 DQUOT           = "\""
-ESC_CHAR        = BACKSLASH [\b\f\n\r\t]
-ESC_CODEPOINT   = BACKSLASH "u" CURLY_OPEN HEX_DIGIT+ CURLY_CLOSE
-//DQUOT_STRING_BODY = ( ESC_CHAR | ESC_CODEPOINT | [^\\] )*
-DQUOT_STRING_BODY = [^\"\\]+
-
-WHITESPACE = [ \t\n\r]+
-//ERRCHAR
-//    :	.	-> channel(HIDDEN)
+ESC_CHAR        = "\\" {ANY_CHARACTER}
+// TODO: \u{H+( H+)*} code point from more parts
+ESC_CODEPOINT_U = "\\u{" {HEX_DIGIT} "}"
+ESC_CODEPOINT_HEX = "\\x" {HEX_DIGIT}{2}
+// Newlines allowed
+DQUOT_STRING_BODY = [^\\\"]+
 
 %state DQUOT_STRING
 
 %%
 
 <YYINITIAL> {
-    ","                     { return GleamTypes.COMMA; }
-    "("                     { return GleamTypes.PAR_OPEN; }
-    ")"                     { return GleamTypes.PAR_CLOSE; }
-    "["                     { return GleamTypes.SQUARE_OPEN; }
-    "]"                     { return GleamTypes.SQUARE_CLOSE; }
-    "{"                     { return GleamTypes.CURLY_OPEN; }
-    "}"                     { return GleamTypes.CURLY_CLOSE; }
-    "."                     { return GleamTypes.DOT; }
-    ".."                    { return GleamTypes.DOT_DOT; }
-
     "assert"                { return GleamTypes.ASSERT_KEYWORD; }
     "as"                    { return GleamTypes.AS_KEYWORD; }
     "case"                  { return GleamTypes.CASE_KEYWORD; }
@@ -101,6 +91,15 @@ WHITESPACE = [ \t\n\r]+
     "False"                 { return GleamTypes.FALSE_ATOM; }
     "Nil"                   { return GleamTypes.NIL_ATOM; }
 
+    ","                     { return GleamTypes.COMMA; }
+    "("                     { return GleamTypes.PAR_OPEN; }
+    ")"                     { return GleamTypes.PAR_CLOSE; }
+    "["                     { return GleamTypes.SQUARE_OPEN; }
+    "]"                     { return GleamTypes.SQUARE_CLOSE; }
+    "{"                     { return GleamTypes.CURLY_OPEN; }
+    "}"                     { return GleamTypes.CURLY_CLOSE; }
+    ".."                    { return GleamTypes.DOT_DOT; }
+    "."                     { return GleamTypes.DOT; }
     "->"                    { return GleamTypes.R_ARROW; }
     "<-"                    { return GleamTypes.L_ARROW; }
     "@"                     { return GleamTypes.AT; }
@@ -124,40 +123,46 @@ WHITESPACE = [ \t\n\r]+
     ">>"                    { return GleamTypes.GTGT; }
     "<"                     { return GleamTypes.LT; }
     ">"                     { return GleamTypes.GT; }
-
     ":"                     { return GleamTypes.COLON; }
     "#"                     { return GleamTypes.HASH; }
     "=="                    { return GleamTypes.EQEQ; }
     "!="                    { return GleamTypes.NEQ; }
     "="                     { return GleamTypes.EQ; }
     "!"                     { return GleamTypes.BANG; }
-    "|>"                    { return GleamTypes.PIPE; }
+    "|>"                    { return GleamTypes.BAR_GT; }
     "||"                    { return GleamTypes.BARBAR; }
     "|"                     { return GleamTypes.BAR; }
     "&&"                    { return GleamTypes.ANDAND; }
-    "."                     { return GleamTypes.DOT; }
-    ".."                    { return GleamTypes.DOT_DOT; }
 
-    {COMMENT}               { return GleamTypes.COMMENT; }
-    {DOC_COMMENT}           { return GleamTypes.COMMENT; }
-    {MODULE_COMMENT}        { return GleamTypes.COMMENT; }
+    // Longest match first, then shorter matches
+    {MODULE_COMMENT}        { return GleamTypes.MODULE_COMMENT; }
+    {DOC_COMMENT}           { return GleamTypes.DOC_COMMENT; }
+    {COMMENT}               { /* return GleamTypes.COMMENT; */ }
 
     {LOWERCASE_IDENT}       { return GleamTypes.LOWERCASE_IDENT; }
     {CAPITALIZED_IDENT}     { return GleamTypes.CAPITALIZED_IDENT; }
     {IGNORED_IDENT}         { return GleamTypes.IGNORED_IDENT; }
 
-    {DQUOT}                 { yybegin(DQUOT_STRING);
-                              stringAccumulator.setLength(0); }
+    {BIN_INT}               { return GleamTypes.BIN_INT; }
+    {OCT_INT}               { return GleamTypes.OCT_INT; }
+    {DEC_INT}               { return GleamTypes.DEC_INT; }
+    {HEX_INT}               { return GleamTypes.HEX_INT; }
+    {FLOAT}                 { return GleamTypes.FLOAT; }
+    {DQUOT}                 { yybegin(DQUOT_STRING); stringAccumulator.setLength(0); }
 
-    {WHITESPACE}            { /* return TokenType.WHITE_SPACE; */ }
-    {ANY_INPUT}             { /* return TokenType.BAD_CHARACTER; */ }
+    {ANY_WHITESPACE}+       { return TokenType.WHITE_SPACE; }
+    // Do not match any here lol, it will consume all
 }
 
 // Inside a double quoted "string"
 <DQUOT_STRING> {
-    // Exit condition
-    {DQUOT}                 { yybegin(YYINITIAL); return GleamTokenType.makeString(stringAccumulator.toString()); }
     // Body of string
     {DQUOT_STRING_BODY}     { stringAccumulator.append(yytext()); }
-    // TODO: \escape chars, \u{xxxx} unicode code points
+    // Exit condition
+    {DQUOT}                 { yybegin(YYINITIAL); return GleamTokenType.makeString(stringAccumulator.toString()); }
+    // \u{xxxx} unicode code points
+    {ESC_CODEPOINT_U}       { stringAccumulator.append(GleamParserUtil.interpretUnicodeCodepoint(yytext())); }
+    {ESC_CODEPOINT_HEX}     { stringAccumulator.append(GleamParserUtil.interpretHexCodepoint(yytext())); }
+    // \escape characters
+    {ESC_CHAR}              { stringAccumulator.append(GleamParserUtil.interpretEscSequence(yytext())); } // take one
 }
