@@ -6,16 +6,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import org.antlr.intellij.adaptor.lexer.RuleIElementType
 import org.antlr.intellij.adaptor.lexer.TokenIElementType
-import org.antlr.intellij.adaptor.psi.ANTLRPsiLeafNode
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
-// All unknown leaf nodes are created as this generic node, they are leaf nodes without going deeper
-class GleamPsiLeafNode(node: ASTNode) : ANTLRPsiLeafNode(node.elementType, node.text)
-
-// All known container nodes are created as this generic Composite node
-open class GleamPsiNode(node: ASTNode) : ANTLRPsiNode(node)
-
 class GleamPsiErrorElement(s: String) : PsiErrorElementImpl(s)
+open class GleamPsiNode(node: ASTNode) : ANTLRPsiNode(node) {
+    val antlrRule: Int = GleamPsiBuilder.getAntlrRule(node)
+}
 
 /**
  * Takes AST created by the ANTLR generated parser, and turns it into something we can work with.
@@ -44,66 +40,24 @@ class GleamPsiBuilder {
             println("Constructing PSI element for node: $node")
             return when (elType.ruleIndex) {
                 // Known ghost nodes serve as containers but do not create PSI
-                GleamParser.RULE_importLine -> GleamImportLine.fromAst(node)
-                GleamParser.RULE_function -> GleamFunctionDef.fromAst(node)
+                GleamParser.RULE_importLine -> ImportLine.fromAst(node)
+                GleamParser.RULE_function -> Func(node)
                 // funcAttr wraps all other funcAttr* types, do not construct here: GleamParser.RULE_funcAttr -> GleamFunctionAttr.fromAst(node)
-                GleamParser.RULE_funcAttrExternal -> GleamFunctionAttr.fromAst(node)
-                GleamParser.RULE_funcAttrDeprecated -> GleamFunctionAttr.fromAst(node)
-                GleamParser.RULE_expression -> GleamExpression.fromAst(node)
-                GleamParser.RULE_pattern -> GleamPattern.fromAst(node)
+                GleamParser.RULE_funcAttrExternal -> FuncAttr(node)
+                GleamParser.RULE_funcAttrDeprecated -> FuncAttr(node)
+                GleamParser.RULE_expression -> Expression.fromAst(node)
+                GleamParser.RULE_pattern -> Pattern.fromAst(node)
 
 
                 else -> GleamPsiNode(node)
             }
         }
 
-        /**
-         * Predicate for filtering node.getChildren(null) for expressions
-         */
-        fun isExpression(child: ASTNode): Boolean = when (val elType = child.elementType) {
-            is RuleIElementType -> elType.ruleIndex == GleamParser.RULE_expression
-            else -> false
-        }
-
-        /**
-         * Predicate for filtering node.getChildren(null) for patterns (expressions suitable for function args and matching)
-         */
-        fun isPattern(child: ASTNode): Boolean = when (val elType = child.elementType) {
-            is RuleIElementType -> elType.ruleIndex == GleamParser.RULE_pattern
-            else -> false
-        }
-
-        /**
-         * Predicate for filtering node.getChildren(null) for identifier names
-         */
-        fun isIdentifier(child: ASTNode): Boolean = when (val elType = child.elementType) {
-            is RuleIElementType -> elType.ruleIndex == GleamParser.RULE_identifier
-            else -> false
-        }
-
-        /**
-         * Predicate for filtering node.getChildren(null) for types
-         */
-        fun isType(child: ASTNode): Boolean = when (val elType = child.elementType) {
-            is RuleIElementType -> elType.ruleIndex == GleamParser.RULE_typeBase
-            else -> false
-        }
-
-        /**
-         * Predicate for filtering node.getChildren(null) for function attrs
-         */
-        fun isFunctionAttr(child: ASTNode): Boolean = when (val elType = child.elementType) {
-            is RuleIElementType -> GleamFunctionAttr.isFunctionAttrRuleType(elType.ruleIndex)
-            else -> false
-        }
-
-        /**
-         * Predicate for ASTNode to be a specific token
-         */
-        fun isToken(node: ASTNode?, tok: Int): Boolean = when (val elType = node?.elementType) {
-            is TokenIElementType -> elType.antlrTokenType == tok
-            else -> false
+        fun getAntlrRule(node: ASTNode): Int {
+            return when (val elementType = node.elementType) {
+                is RuleIElementType -> elementType.ruleIndex
+                else -> -1
+            }
         }
     }
-
 }
