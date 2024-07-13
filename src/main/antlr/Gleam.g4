@@ -134,7 +134,7 @@ useArgs: identifier | identifier COMMA useArgs;
 use: USE (useArgs)? L_ARROW expression;
 
 assignment: pattern (typeAnnotation)? EQ expression;
-let: LET assignment;
+let: LET ASSERT? assignment;
 assert: ASSERT assignment;
 negation: BANG expressionUnit;
 
