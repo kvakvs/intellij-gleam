@@ -37,7 +37,7 @@ class GleamPsiBuilder {
         }
 
         private fun fromRule(node: ASTNode, elType: RuleIElementType): PsiElement {
-            println("Constructing PSI element for node: $node")
+            //println("Constructing PSI element for node: $node")
             return when (elType.ruleIndex) {
                 // Known ghost nodes serve as containers but do not create PSI
                 GleamParser.RULE_importLine -> ImportLine.fromAst(node)
